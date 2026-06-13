@@ -6,6 +6,18 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["--yes", "serve", "-l", "4321", "."],
       "port": 4321
+    },
+    {
+      "name": "dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["wrangler", "pages", "dev", ".", "--compatibility-date=2025-08-01", "--port", "8788"],
+      "port": 8788
+    },
+    {
+      "name": "dev-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["wrangler", "pages", "dev", ".", "--compatibility-date=2025-08-01", "--port", "8790"],
+      "port": 8790
     }
   ]
 }

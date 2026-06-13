@@ -62,6 +62,8 @@ create table if not exists public.checkout_orders (
   expires_at timestamptz,
   paid_at timestamptz,
   released_at timestamptz,
+  fulfilled_at timestamptz,
+  tracking_number text,
   metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -85,6 +87,7 @@ create table if not exists public.checkout_order_items (
 
 create index if not exists idx_checkout_orders_status on public.checkout_orders(status);
 create index if not exists idx_checkout_orders_stripe_session on public.checkout_orders(stripe_session_id);
+create index if not exists idx_checkout_orders_unfulfilled on public.checkout_orders(paid_at) where status = 'paid' and fulfilled_at is null;
 create index if not exists idx_checkout_order_items_order_id on public.checkout_order_items(order_id);
 create index if not exists idx_product_variants_product_format on public.product_variants(product_id, format);
 

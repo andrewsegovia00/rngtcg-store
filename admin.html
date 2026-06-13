@@ -92,13 +92,18 @@
           <p class="eyebrow">Orders</p>
           <h2>Recent checkout orders</h2>
         </div>
-        <select id="orderFilter">
-          <option value="all">All orders</option>
-          <option value="pending">Pending holds</option>
-          <option value="paid">Paid</option>
-          <option value="released">Released</option>
-          <option value="expired">Expired</option>
-        </select>
+        <div class="filter-row">
+          <button class="link-pill" id="exportBtn" title="Download paid, not-yet-shipped orders as a PirateShip CSV">Export PirateShip CSV</button>
+          <select id="orderFilter">
+            <option value="unfulfilled">Paid · to ship</option>
+            <option value="fulfilled">Shipped</option>
+            <option value="all">All orders</option>
+            <option value="pending">Pending holds</option>
+            <option value="paid">Paid (all)</option>
+            <option value="released">Released</option>
+            <option value="expired">Expired</option>
+          </select>
+        </div>
       </div>
       <div class="orders" id="orders"></div>
     </section>

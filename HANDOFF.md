@@ -86,10 +86,17 @@ The project now has its **own repo** at the project directory (it previously had
 
 ## 4. Roadmap — what to build next
 
-### Phase 3 — PirateShip fulfillment (NEXT; user was choosing approach)
-Paid orders now carry full shipping addresses (`ship_*` columns). Build an **admin "Export paid/unfulfilled orders → CSV"** in PirateShip's bulk-import column format (recipient name, full address, item summary, weight placeholder). User leaned toward **CSV export** over a direct API integration (PirateShip's API is limited/approval-gated). Suggested addition: a `fulfilled_at` / fulfillment status column so exported orders can be marked shipped.
+### Phase 3 — PirateShip fulfillment ✅ DONE
+Admin CSV export + fulfillment tracking, verified end-to-end (export, mark-shipped, re-export reflects it, 401 guard, admin UI).
+- **DB:** added `checkout_orders.fulfilled_at timestamptz` + `tracking_number text`, plus partial index `idx_checkout_orders_unfulfilled` (status='paid' and fulfilled_at is null). Migration `add_order_fulfillment_tracking` applied; mirrored in `supabase/schema.sql`.
+- **`functions/api/admin-export-orders.js`** (GET) — paid + unfulfilled orders → PirateShip-shaped CSV (`text/csv` attachment, `x-order-count` header). Columns: Order Number, Order Date, Recipient Name, Email, Phone, Address 1/2, City, State, Zipcode, Country, Item Description, Item Quantity, Weight (oz), Order Value. **Weight is an ESTIMATE** (`WEIGHT_OZ` = box 16 / pack 2 / default 8 oz) until real per-product weights exist — verify in PirateShip before buying labels.
+- **`functions/api/admin-mark-fulfilled.js`** (POST `{order_ids[], tracking_number?, undo?}`) — sets/clears `fulfilled_at` (+ optional tracking) on paid orders via PATCH.
+- **`admin-overview.js`** — orders select now includes `ship_*`, `fulfilled_at`, `tracking_number`; totals include `unfulfilled`.
+- **Admin UI** (`admin.html`/`admin.js`/`admin.css`) — "Export PirateShip CSV" button (auth'd blob download); order filter defaults to "Paid · to ship" (+ "Shipped"); paid order cards show ship-to address, a To-ship/Shipped badge, and "Mark shipped"/"Undo shipped" buttons (tracking via prompt). New "To ship" metric.
 
-### Phase 4 — Order confirmation emails
+Possible follow-ups: real product weights (column + UI), a bulk "mark all exported as shipped", and storing the ship-from/return address (PirateShip handles ship-from on its side today).
+
+### Phase 4 — Order confirmation emails (NEXT)
 - **Quick win (no code):** enable Stripe automatic receipts — Stripe Dashboard → Settings → Customer emails → "Successful payments."
 - **Branded email:** integrate **Resend** (the README already anticipates `RESEND_API_KEY` / `RESEND_FROM_EMAIL`). Send a branded "R&G TCG order confirmed" email from the webhook on `mark_order_paid`. User wants **logo + animated gifs/images** in the email.
 
