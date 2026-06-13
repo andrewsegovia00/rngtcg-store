@@ -114,6 +114,16 @@ nothing else breaks. Template lives in `functions/_lib/email.js`.
 **Quick win with no code:** enable Stripe automatic receipts in
 Stripe Dashboard → Settings → Customer emails → "Successful payments."
 
+**Email analytics (Phase 5 — optional):**
+
+```txt
+RESEND_WEBHOOK_SECRET=whsec_...   # Resend dashboard → Webhooks → signing secret
+```
+
+Point a Resend webhook at `https://YOUR-DOMAIN/api/resend-webhook` (events:
+sent/delivered/opened/bounced/complained). Events land in `email_events` and
+drive the open/delivery/bounce rates in the admin Marketing panel.
+
 **Still later:**
 
 ```txt

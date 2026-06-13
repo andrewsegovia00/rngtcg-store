@@ -126,6 +126,14 @@ export async function onRequestPost(context) {
       if (orderId && !result?.already_paid) {
         const task = sendConfirmation(env, orderId);
         if (typeof waitUntil === "function") waitUntil(task); else await task;
+
+        // Record the buyer on the transactional/order-confirmation list.
+        const email = session.customer_details?.email || session.customer_email;
+        if (email && hasSupabase(env)) {
+          const rec = supabaseRpc(env, "record_order_recipient", { p_email: email })
+            .catch(e => console.warn("record_order_recipient failed", e.message));
+          if (typeof waitUntil === "function") waitUntil(rec); else await rec;
+        }
       }
     }
 

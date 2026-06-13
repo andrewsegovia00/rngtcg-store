@@ -104,10 +104,16 @@ Branded Resend order-confirmation email, wired into the webhook. Verified: email
 
 **To go live (user action):** verify a sending domain in Resend, set `RESEND_API_KEY` + `RESEND_FROM_EMAIL` (and optional asset URLs + Discord invite) in `.dev.vars` / Cloudflare env, restart Wrangler, then run a real test checkout. Optionally also flip on Stripe automatic receipts (Dashboard → Settings → Customer emails) as a belt-and-suspenders.
 
-### Phase 5 — Email lists, coupons, analytics
-- **Two separate lists** (separate Supabase tables): (1) order/product-confirmation recipients, (2) newsletter subscribers. The checkout already has a "Email me drop codes & new arrivals" checkbox to wire up for the newsletter opt-in.
-- **10%-off-first-order coupon:** randomly generated **single-use** codes (one redemption each). Needs a `coupons` table (code, discount, used_at, order_id) and validation in checkout — likely via Stripe promotion codes or a custom discount applied to line items. Checkout already sends `allow_promotion_codes=true` to Stripe.
-- **Email analytics:** open rate, delivery rate, bounce rate — capture via **Resend webhooks** into a Supabase table.
+### Phase 5 — Email lists, coupons, analytics ✅ DONE
+All three sub-features built and verified end-to-end. Migrations `phase5_lists_coupons_email_events` + `phase5_marketing_overview_rpc` applied; mirrored in `supabase/schema.sql`.
+- **Two lists, two tables.** `newsletter_subscribers` (opt-in) + `order_recipients` (transactional). RPCs `subscribe_newsletter` (lowercases/trims, clears unsubscribe) and `record_order_recipient` (upsert + `order_count` increment). Wired: checkout checkbox (`#newsletterOptIn`) → `create-checkout-session` opt-in (non-blocking); first paid webhook → `record_order_recipient`. **Verified:** RPCs normalize + increment correctly.
+- **Coupons via Stripe promotion codes** (your choice). `POST /api/admin-generate-coupons` creates one Stripe coupon (percent off, `duration=once`) + N promotion codes with `max_redemptions=1` (Stripe enforces single-use), mirrored into `coupons`. `functions/_lib/stripe.js` is the shared form-encoded Stripe helper. Customers redeem on Stripe checkout (`allow_promotion_codes` already on). **Verified:** generated 2 live test-mode codes + DB mirror. Codes are unambiguous (`RG-XXXXXXXX`, no 0/O/1/I).
+- **Email analytics.** `POST /api/resend-webhook` verifies Svix signatures (`RESEND_WEBHOOK_SECRET`) and stores events in `email_events`. **Verified:** Svix HMAC matches the official Svix test vector; endpoint 501s without the secret.
+- **Admin Marketing panel** (`admin.html`/`admin.js`/`admin.css`) via new `GET /api/admin-marketing`: metrics (newsletter subs, order recipients, delivery/open/bounce rate from `marketing_overview()`), a coupon generator form, and a recent-codes table. **Verified:** renders with live data.
+
+**To go live (user action):** point a Resend webhook at `/api/resend-webhook` and set `RESEND_WEBHOOK_SECRET` for analytics. Coupons + lists work as soon as Stripe/Supabase are configured (already are).
+
+Possible follow-ups: sync coupon redemption back to the `coupons` table (Stripe already enforces single-use, so this is analytics-only), an unsubscribe endpoint/page, and auto-emailing a welcome 10%-off code on newsletter signup.
 
 ### Phase 1.5 — Admin dashboard polish (small, do alongside any phase)
 The admin dashboard (`admin.html` / `admin.js`, guarded by `ADMIN_TOKEN`) already edits **price / stock / active** per SKU, and those edits now drive the live site. Still missing UI controls for:

@@ -121,5 +121,19 @@ button { cursor: pointer; }
 .dialog__x { position: absolute; top: var(--space-4); right: var(--space-4); border: var(--outline); border-radius: var(--radius-pill); background: #fff; width: 34px; height: 34px; box-shadow: var(--shadow-offset-sm); }
 .dialog__actions { display: flex; justify-content: flex-end; gap: var(--space-2); }
 .dialog__actions .primary { background: var(--color-primary); }
-@media (max-width: 960px) { .hero-admin { grid-template-columns: 1fr; } .metric-grid { grid-template-columns: repeat(2, 1fr); } }
+/* Marketing panel */
+#marketingMetrics { margin-bottom: var(--space-5); }
+.marketing-grid { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: var(--space-5); align-items: start; }
+.coupon-card { border: var(--outline); border-radius: var(--radius-md); background: var(--color-surface-alt); box-shadow: var(--shadow-offset-sm); padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
+.coupon-card h3, .coupon-list h3 { margin: 0; font-family: var(--font-display); font-size: var(--text-display-sm); line-height: 1; }
+.coupon-hint { font-size: var(--text-body-sm); color: var(--color-text-muted); }
+.coupon-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
+.coupon-fields label { display: grid; gap: var(--space-2); font: var(--weight-bold) var(--text-label-sm) var(--font-mono); text-transform: uppercase; letter-spacing: .6px; color: var(--color-text-muted); }
+.coupon-fields input { border: var(--outline); border-radius: var(--radius-sm); padding: var(--space-2) var(--space-3); background: var(--color-surface); outline: none; }
+.coupon-card .primary { align-self: flex-start; border: var(--outline); border-radius: var(--radius-pill); background: var(--color-primary); color: #fff; padding: var(--space-3) var(--space-5); font-weight: var(--weight-bold); box-shadow: var(--shadow-offset-sm); cursor: pointer; }
+.coupon-card .primary:hover { transform: translate(-1px,-1px); box-shadow: var(--shadow-offset-md); }
+#couponOutput { font-family: var(--font-mono); font-size: var(--text-body-sm); border: var(--outline); border-radius: var(--radius-sm); padding: var(--space-3); background: var(--color-surface); resize: vertical; }
+.coupon-list { display: flex; flex-direction: column; gap: var(--space-3); }
+
+@media (max-width: 960px) { .hero-admin { grid-template-columns: 1fr; } .metric-grid { grid-template-columns: repeat(2, 1fr); } .marketing-grid { grid-template-columns: 1fr; } }
 @media (max-width: 680px) { .admin-header, .wrap { padding-inline: var(--layout-gutter-sm); } .metric-grid { grid-template-columns: 1fr; } .admin-header { height: auto; padding-block: var(--space-3); flex-direction: column; align-items: stretch; } .admin-actions { justify-content: space-between; } }

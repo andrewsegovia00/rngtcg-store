@@ -92,12 +92,13 @@ async function startStripeCheckout(){
 
   setCheckoutState("loading", "Creating secure Stripe checkout…");
   const email = $("#email")?.value?.trim() || "";
+  const newsletter = $("#newsletterOptIn")?.checked ?? false;
 
   try {
     const response = await fetch("/api/create-checkout-session", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ cart, email, shipping: shipChoice })
+      body: JSON.stringify({ cart, email, shipping: shipChoice, newsletter })
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.url) {

@@ -78,7 +78,8 @@ async function createReservationIfConfigured(env, payload) {
   });
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost(context) {
+  const { request, env, waitUntil } = context;
   if (!env.STRIPE_SECRET_KEY) {
     return json({
       error: "Missing STRIPE_SECRET_KEY.",
@@ -94,6 +95,14 @@ export async function onRequestPost({ request, env }) {
   }
 
   const supabaseEnabled = hasSupabase(env);
+
+  // Newsletter opt-in (best-effort, non-blocking) from the checkout checkbox.
+  const optInEmail = typeof payload.email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email) ? payload.email : null;
+  if (payload.newsletter && optInEmail && supabaseEnabled) {
+    const task = supabaseRpc(env, "subscribe_newsletter", { p_email: optInEmail, p_source: "checkout" })
+      .catch(e => console.warn("newsletter subscribe failed", e.message));
+    if (typeof waitUntil === "function") waitUntil(task);
+  }
 
   // When Supabase is the source of truth, the reservation RPC validates the cart
   // and returns authoritative prices/lines — so the price we DISPLAY and the price

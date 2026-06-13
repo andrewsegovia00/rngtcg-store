@@ -486,8 +486,85 @@ begin
 end;
 $$;
 
+-- ============================================================================
+-- Phase 5 — email lists, coupons, email analytics
+-- ============================================================================
+create table if not exists public.newsletter_subscribers (
+  id bigint generated always as identity primary key,
+  email text not null unique,
+  source text not null default 'checkout',
+  subscribed_at timestamptz not null default now(),
+  unsubscribed_at timestamptz
+);
+
+create table if not exists public.order_recipients (
+  id bigint generated always as identity primary key,
+  email text not null unique,
+  first_order_at timestamptz not null default now(),
+  last_order_at timestamptz not null default now(),
+  order_count integer not null default 1
+);
+
+create table if not exists public.coupons (
+  id bigint generated always as identity primary key,
+  code text not null unique,
+  stripe_coupon_id text,
+  stripe_promotion_code_id text,
+  percent_off integer not null,
+  max_redemptions integer not null default 1,
+  expires_at timestamptz,
+  note text,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.email_events (
+  id bigint generated always as identity primary key,
+  resend_email_id text,
+  type text not null,
+  recipient text,
+  subject text,
+  created_at timestamptz not null default now(),
+  raw jsonb not null default '{}'::jsonb
+);
+create index if not exists idx_email_events_type on public.email_events(type);
+create index if not exists idx_email_events_email_id on public.email_events(resend_email_id);
+
+create or replace function public.subscribe_newsletter(p_email text, p_source text default 'checkout')
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if p_email is null or length(trim(p_email)) = 0 then return; end if;
+  insert into public.newsletter_subscribers(email, source)
+  values (lower(trim(p_email)), coalesce(nullif(p_source, ''), 'checkout'))
+  on conflict (email) do update set unsubscribed_at = null;
+end; $$;
+
+create or replace function public.record_order_recipient(p_email text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if p_email is null or length(trim(p_email)) = 0 then return; end if;
+  insert into public.order_recipients(email, first_order_at, last_order_at, order_count)
+  values (lower(trim(p_email)), now(), now(), 1)
+  on conflict (email) do update
+    set last_order_at = now(), order_count = public.order_recipients.order_count + 1;
+end; $$;
+
+create or replace function public.marketing_overview()
+returns jsonb language sql security definer set search_path = public as $$
+  select jsonb_build_object(
+    'newsletter_count', (select count(*) from public.newsletter_subscribers where unsubscribed_at is null),
+    'order_recipient_count', (select count(*) from public.order_recipients),
+    'email_stats', coalesce(
+      (select jsonb_object_agg(type, c) from (select type, count(*) c from public.email_events group by type) s),
+      '{}'::jsonb)
+  );
+$$;
+
 -- Keep RLS off for MVP service-role-only access. Do not expose service role key in browser.
 alter table public.products disable row level security;
 alter table public.product_variants disable row level security;
 alter table public.checkout_orders disable row level security;
 alter table public.checkout_order_items disable row level security;
+alter table public.newsletter_subscribers disable row level security;
+alter table public.order_recipients disable row level security;
+alter table public.coupons disable row level security;
+alter table public.email_events disable row level security;
