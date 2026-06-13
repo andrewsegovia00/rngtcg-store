@@ -16,6 +16,7 @@ create table if not exists public.products (
   tone text,
   symbol text,
   image_label text,
+  sale_percent integer check (sale_percent is null or (sale_percent >= 0 and sale_percent <= 90)),
   active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -50,6 +51,14 @@ create table if not exists public.checkout_orders (
   stripe_payment_intent text,
   stripe_customer_id text,
   stripe_customer_email text,
+  ship_name text,
+  ship_phone text,
+  ship_line1 text,
+  ship_line2 text,
+  ship_city text,
+  ship_state text,
+  ship_postal_code text,
+  ship_country text,
   expires_at timestamptz,
   paid_at timestamptz,
   released_at timestamptz,
@@ -393,7 +402,8 @@ create or replace function public.mark_order_paid(
   p_payment_intent text,
   p_customer_id text,
   p_customer_email text,
-  p_payload jsonb default '{}'::jsonb
+  p_payload jsonb default '{}'::jsonb,
+  p_shipping jsonb default '{}'::jsonb
 )
 returns jsonb
 language plpgsql
@@ -433,6 +443,14 @@ begin
       stripe_payment_intent = p_payment_intent,
       stripe_customer_id = p_customer_id,
       stripe_customer_email = p_customer_email,
+      ship_name = coalesce(nullif(p_shipping->>'name', ''), ship_name),
+      ship_phone = coalesce(nullif(p_shipping->>'phone', ''), ship_phone),
+      ship_line1 = coalesce(nullif(p_shipping->>'line1', ''), ship_line1),
+      ship_line2 = coalesce(nullif(p_shipping->>'line2', ''), ship_line2),
+      ship_city = coalesce(nullif(p_shipping->>'city', ''), ship_city),
+      ship_state = coalesce(nullif(p_shipping->>'state', ''), ship_state),
+      ship_postal_code = coalesce(nullif(p_shipping->>'postal_code', ''), ship_postal_code),
+      ship_country = coalesce(nullif(p_shipping->>'country', ''), ship_country),
       paid_at = now(),
       metadata = metadata || jsonb_build_object('stripe_event_payload', p_payload),
       updated_at = now()

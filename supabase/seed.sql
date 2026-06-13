@@ -102,3 +102,10 @@ insert into public.product_variants (sku, product_id, format, price_cents, stock
   ('op-jp-01:pack', 'op-jp-01', 'pack', 500, 14),
   ('op-jp-01:box', 'op-jp-01', 'box', 11800, 14)
 on conflict (sku) do update set product_id=excluded.product_id, format=excluded.format, price_cents=excluded.price_cents, stock_on_hand=excluded.stock_on_hand;
+
+-- Sale percentages (discounts shown on the storefront and applied at checkout).
+update public.products set sale_percent = 15 where id = 'pkm-02';
+update public.products set sale_percent = 25 where id = 'pkm-08';
+update public.products set sale_percent = 20 where id = 'mtg-04';
+update public.products set sale_percent = 10 where id = 'ygo-04';
+update public.products set sale_percent = 15 where id = 'lor-04';

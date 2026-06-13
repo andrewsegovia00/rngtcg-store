@@ -44,6 +44,24 @@ async function verifyStripeSignature(rawBody, signatureHeader, secret) {
   return safeEqual(bytesToHex(signature), expected);
 }
 
+// Pull the shipping address Stripe collected on its hosted checkout page.
+// Field names vary by API version, so check shipping_details, shipping, then
+// fall back to the billing/customer address.
+function extractShipping(session) {
+  const details = session.shipping_details || session.shipping || session.collected_information?.shipping_details || {};
+  const addr = details.address || session.customer_details?.address || {};
+  return {
+    name: details.name || session.customer_details?.name || null,
+    phone: session.customer_details?.phone || null,
+    line1: addr.line1 || null,
+    line2: addr.line2 || null,
+    city: addr.city || null,
+    state: addr.state || null,
+    postal_code: addr.postal_code || null,
+    country: addr.country || null
+  };
+}
+
 async function markPaid(env, session) {
   const orderId = session?.metadata?.order_id;
   if (!hasSupabase(env) || !orderId) return null;
@@ -53,7 +71,8 @@ async function markPaid(env, session) {
     p_payment_intent: typeof session.payment_intent === "string" ? session.payment_intent : null,
     p_customer_id: typeof session.customer === "string" ? session.customer : null,
     p_customer_email: session.customer_details?.email || session.customer_email || null,
-    p_payload: session
+    p_payload: session,
+    p_shipping: extractShipping(session)
   });
 }
 
