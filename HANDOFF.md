@@ -96,9 +96,13 @@ Admin CSV export + fulfillment tracking, verified end-to-end (export, mark-shipp
 
 Possible follow-ups: real product weights (column + UI), a bulk "mark all exported as shipped", and storing the ship-from/return address (PirateShip handles ship-from on its side today).
 
-### Phase 4 — Order confirmation emails (NEXT)
-- **Quick win (no code):** enable Stripe automatic receipts — Stripe Dashboard → Settings → Customer emails → "Successful payments."
-- **Branded email:** integrate **Resend** (the README already anticipates `RESEND_API_KEY` / `RESEND_FROM_EMAIL`). Send a branded "R&G TCG order confirmed" email from the webhook on `mark_order_paid`. User wants **logo + animated gifs/images** in the email.
+### Phase 4 — Order confirmation emails ✅ DONE (code) — needs Resend key to go live
+Branded Resend order-confirmation email, wired into the webhook. Verified: email HTML renders correctly (template preview), webhook module loads, and a signed `checkout.session.completed` event marked an order paid + captured shipping with email gracefully skipped (Resend unconfigured) — no errors.
+- **`functions/_lib/email.js`** — `hasResend(env)` gate + `buildOrderEmailHtml(order, env)` (inline-styled, email-client-safe, on-brand: dark header, loot table, totals, ship-to, "Drops drop in Discord first" CTA) + `sendOrderConfirmationEmail(env, order)` (Resend REST, no npm dep).
+- **`stripe-webhook.js`** — on the **first** paid transition only (idempotent via `mark_order_paid`'s `already_paid`; Stripe retries safe), fetches the order + items and sends the email **non-blocking via `context.waitUntil`** in a try/catch — it can never delay or fail the webhook ack.
+- **Docs:** `.dev.vars.example` + `KEYS_NEEDED.md` document `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, optional `RESEND_LOGO_URL` / `RESEND_HERO_GIF_URL` (the **logo + animated gif** the user wanted — drop in real URLs), and `DISCORD_INVITE_URL`.
+
+**To go live (user action):** verify a sending domain in Resend, set `RESEND_API_KEY` + `RESEND_FROM_EMAIL` (and optional asset URLs + Discord invite) in `.dev.vars` / Cloudflare env, restart Wrangler, then run a real test checkout. Optionally also flip on Stripe automatic receipts (Dashboard → Settings → Customer emails) as a belt-and-suspenders.
 
 ### Phase 5 — Email lists, coupons, analytics
 - **Two separate lists** (separate Supabase tables): (1) order/product-confirmation recipients, (2) newsletter subscribers. The checkout already has a "Email me drop codes & new arrivals" checkbox to wire up for the newsletter opt-in.

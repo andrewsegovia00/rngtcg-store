@@ -1,4 +1,5 @@
-import { hasSupabase, supabaseRpc } from "../_lib/supabase.js";
+import { hasSupabase, supabaseRpc, supabaseFetch } from "../_lib/supabase.js";
+import { hasResend, sendOrderConfirmationEmail } from "../_lib/email.js";
 
 const json = (body, status = 200) => new Response(JSON.stringify(body, null, 2), {
   status,
@@ -82,7 +83,26 @@ async function releaseReservation(env, session) {
   return supabaseRpc(env, "release_order_reservation", { p_order_id: orderId });
 }
 
-export async function onRequestPost({ request, env }) {
+// Fetch the freshly-paid order (with line items + shipping) and send the
+// branded confirmation email. Best-effort: never throws into the webhook.
+async function sendConfirmation(env, orderId) {
+  try {
+    if (!hasResend(env) || !hasSupabase(env) || !orderId) return;
+    const rows = await supabaseFetch(
+      env,
+      `/checkout_orders?id=eq.${encodeURIComponent(orderId)}&select=order_number,customer_email,stripe_customer_email,shipping_method,subtotal_cents,shipping_cents,total_before_tax_cents,ship_name,ship_line1,ship_line2,ship_city,ship_state,ship_postal_code,ship_country,checkout_order_items(title,format,language,quantity,line_amount_cents)`
+    );
+    const order = Array.isArray(rows) ? rows[0] : null;
+    if (!order) return;
+    const result = await sendOrderConfirmationEmail(env, order);
+    console.log("Order confirmation email", order.order_number, result);
+  } catch (error) {
+    console.error("Order confirmation email failed", error.message, error.details || "");
+  }
+}
+
+export async function onRequestPost(context) {
+  const { request, env, waitUntil } = context;
   const rawBody = await request.text();
   const sig = request.headers.get("Stripe-Signature");
 
@@ -100,6 +120,13 @@ export async function onRequestPost({ request, env }) {
     if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
       const result = await markPaid(env, session);
       console.log("Order paid", result || session?.id);
+      // Send the confirmation only on the first paid transition (Stripe retries
+      // webhooks). Run it after responding so it never delays/blocks the ack.
+      const orderId = result?.order_id || session?.metadata?.order_id;
+      if (orderId && !result?.already_paid) {
+        const task = sendConfirmation(env, orderId);
+        if (typeof waitUntil === "function") waitUntil(task); else await task;
+      }
     }
 
     if (event.type === "checkout.session.expired" || event.type === "checkout.session.async_payment_failed") {

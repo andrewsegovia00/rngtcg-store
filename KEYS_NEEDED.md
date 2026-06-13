@@ -96,15 +96,31 @@ Authorization: Bearer <ADMIN_TOKEN>
 
 ## Optional / later keys
 
-These are not required by the current package, but are likely next:
+**Order-confirmation email (Phase 4 — wired up, optional):**
 
 ```txt
-RESEND_API_KEY=re_...
-RESEND_FROM_EMAIL=orders@yourdomain.com
+RESEND_API_KEY=re_...                 # enables branded order emails
+RESEND_FROM_EMAIL=orders@yourdomain.com   # must be a Resend-verified domain
+RESEND_LOGO_URL=https://.../logo.png      # optional header logo (else text wordmark)
+RESEND_HERO_GIF_URL=https://.../hero.gif  # optional animated gif/hero image
+DISCORD_INVITE_URL=https://discord.gg/... # community CTA in the email + landing page
+```
+
+The Stripe webhook sends a branded "order confirmed" email on the first paid
+transition (idempotent across Stripe retries; non-blocking via `waitUntil`). If
+`RESEND_API_KEY`/`RESEND_FROM_EMAIL` are unset, email is skipped silently —
+nothing else breaks. Template lives in `functions/_lib/email.js`.
+
+**Quick win with no code:** enable Stripe automatic receipts in
+Stripe Dashboard → Settings → Customer emails → "Successful payments."
+
+**Still later:**
+
+```txt
 STRIPE_TAX_ENABLED=true
 ```
 
-Use Resend/Postmark later for custom order emails, drop codes, campaign emails, and abandoned checkout follow-ups.
+Use Resend for drop codes, campaign emails, and abandoned-checkout follow-ups next.
 
 ## Keys you do NOT need yet
 
