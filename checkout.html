@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="robots" content="noindex" />
+<meta name="description" content="Review your chest and check out securely with Stripe." />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>R&G TCG — Checkout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="checkout.css" />
+</head>
+<body>
+<header class="checkout-header">
+  <div class="checkout-header__inner">
+    <a class="back" href="index.html">← Back to shop</a>
+    <a class="logo" href="index.html"><span class="logo__mark"><svg viewBox="0 0 40 40"><text x="20" y="27" text-anchor="middle" font-family="Bagel Fat One,sans-serif" font-size="15" fill="#fff">R&amp;G</text></svg></span><span class="logo__name">R&amp;G TCG</span></a>
+    <span class="secure">Stripe Checkout</span>
+  </div>
+</header>
+
+<main class="checkout-shell">
+  <section class="checkout-form">
+    <h1>Checkout</h1>
+    <p class="checkout-sub">Review your loot, then continue to secure Stripe Checkout. Card data never touches this site.</p>
+
+    <section class="checkout-card">
+      <div class="checkout-card__head"><span>1</span><strong>Contact</strong><a href="#">Log in</a></div>
+      <label class="field"><span>Email *</span><input id="email" type="email" /></label>
+      <label class="checkline"><input type="checkbox" checked /> Email me drop codes & new arrivals</label>
+    </section>
+
+    <section class="checkout-card">
+      <div class="checkout-card__head"><span>2</span><strong>Ship to</strong></div>
+      <div class="form-grid form-grid--2">
+        <label class="field"><span>First name *</span><input /></label>
+        <label class="field"><span>Last name *</span><input /></label>
+      </div>
+      <label class="field"><span>Address *</span><input /></label>
+      <div class="form-grid form-grid--3">
+        <label class="field"><span>City *</span><input /></label>
+        <label class="field"><span>State *</span><input /></label>
+        <label class="field"><span>ZIP *</span><input /></label>
+      </div>
+    </section>
+
+    <section class="checkout-card">
+      <div class="checkout-card__head"><span>3</span><strong>Delivery</strong></div>
+      <button class="ship-choice is-selected" data-ship="standard"><span><strong>Standard</strong><small>4–6 business days</small></span><b id="standardShip">$5.00</b></button>
+      <button class="ship-choice" data-ship="express"><span><strong>Express</strong><small>1–2 business days</small></span><b>$15.00</b></button>
+    </section>
+
+    <section class="checkout-card">
+      <div class="checkout-card__head"><span>4</span><strong>Payment</strong></div>
+      <div class="stripe-handoff">
+        <div class="stripe-handoff__mark">stripe</div>
+        <div>
+          <strong>Secure hosted checkout</strong>
+          <p>Apple Pay, cards, shipping address, and promos happen on Stripe after you click Place order.</p>
+        </div>
+      </div>
+      <p class="stripe-copy">MVP rule: we create the order server-side first, then Stripe collects payment details.</p>
+    </section>
+
+    <button class="place-order" id="placeOrder">Place order · <span id="placeTotal">$0.00</span></button>
+    <p class="checkout-message" id="checkoutMessage" role="status" aria-live="polite"></p>
+  </section>
+
+  <aside class="checkout-summary">
+    <div class="summary-chest">
+      <div class="summary-chest__head">
+        <div><span>Your loot</span><strong>Order chest</strong></div>
+        <b id="summaryCount">0 items</b>
+      </div>
+      <div id="summaryLines"></div>
+      <div class="summary-totals" id="summaryTotals"></div>
+    </div>
+  </aside>
+</main>
+
+<script src="catalog.js"></script>
+<script src="checkout.js"></script>
+</body>
+</html>

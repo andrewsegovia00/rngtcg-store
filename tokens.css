@@ -1,0 +1,193 @@
+/* ============================================================================
+   R&G TCG — DESIGN TOKENS
+   Single source of truth for the entire visual system.
+   Import this once at the top of your app; every component reads from :root.
+
+       <link rel="stylesheet" href="tokens.css" />
+       or, in CSS:  @import "tokens.css";
+
+   Everything below is a CSS custom property. Reference with var(--token-name).
+   Do NOT hard-code hex codes, px font-sizes, or shadows in components —
+   always point at a token so the theme stays swappable.
+   ============================================================================ */
+
+:root {
+
+  /* ----------------------------------------------------------------------
+     1 · BRAND / CORE PALETTE   (white surface, purple accent — "Gear 5")
+     ---------------------------------------------------------------------- */
+  --color-primary:        #6b3bd6;   /* main purple — buttons, active states, links   */
+  --color-primary-strong: #5a2fc0;   /* hover / pressed purple                         */
+  --color-primary-soft:   #a07cff;   /* light purple — secondary accents, glows        */
+  --color-primary-tint:   #ede7fb;   /* lightest purple wash — hover rows, soft fills   */
+
+  --color-secondary:      #3f6df0;   /* blue   — informational accents                  */
+  --color-success:        #2a8f64;   /* green  — in-stock, confirmations                */
+  --color-accent-pink:    #c94b9b;   /* pink   — sale / promo highlights                */
+  --color-warning:        #e08a2b;   /* amber  — low-stock, pre-order                   */
+  --color-danger:         #d23b3b;   /* red    — errors, sold-out, destructive          */
+
+  /* ----------------------------------------------------------------------
+     2 · NEUTRALS / SURFACES
+     ---------------------------------------------------------------------- */
+  --color-bg:             #f7f5fb;   /* page background (faint lavender white)          */
+  --color-surface:        #ffffff;   /* cards, panels, header                           */
+  --color-surface-alt:    #f2eefb;   /* recessed wells, inputs, hover surface           */
+  --color-ink:            #1a1320;   /* primary text + the heavy outline color          */
+  --color-text:           #1a1320;   /* alias of ink for body copy                      */
+  --color-text-muted:     #6b6478;   /* secondary text, captions, labels                */
+  --color-text-inverse:   #ffffff;   /* text on dark / primary fills                    */
+  --color-border:         #1a1320;   /* the signature heavy 2px outline                 */
+  --color-border-soft:    #e3ddec;   /* hairline dividers, subtle separators            */
+
+  /* ----------------------------------------------------------------------
+     3 · CATEGORY ACCENTS   (one hue per TCG line — recolor freely)
+     ---------------------------------------------------------------------- */
+  --color-cat-pokemon:    #6b3bd6;
+  --color-cat-magic:      #3f6df0;
+  --color-cat-yugioh:     #a07cff;
+  --color-cat-lorcana:    #2a8f64;
+  --color-cat-onepiece:   #c94b9b;
+
+  /* ----------------------------------------------------------------------
+     4 · TYPOGRAPHY
+     Load these three families in <head> (see image/asset section below).
+     ---------------------------------------------------------------------- */
+  --font-display: "Bagel Fat One", Georgia, serif;          /* chunky headings, prices, brand */
+  --font-body:    "Space Grotesk", -apple-system, system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", monospace;  /* labels, prices, codes */
+
+  /* Type scale — modular, ~1.25 ratio. Use the role names, not raw px. */
+  --text-display-xl: 56px;   /* hero / page title (Bagel Fat One)        */
+  --text-display-lg: 36px;   /* section title                            */
+  --text-display-md: 30px;   /* panel heading                            */
+  --text-display-sm: 22px;   /* price, small display number              */
+  --text-body-lg:    16px;   /* lead paragraph                           */
+  --text-body:       15px;   /* default body                             */
+  --text-body-sm:    13px;   /* secondary copy                           */
+  --text-label:      12px;   /* mono labels / chips                      */
+  --text-label-sm:   10px;   /* tiny mono tags / kickers                 */
+  --text-micro:       9px;   /* badge text                               */
+
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semibold:600;
+  --weight-bold:    700;
+
+  --leading-tight:  1.0;
+  --leading-snug:   1.25;
+  --leading-normal: 1.45;
+  --leading-relaxed:1.6;
+
+  --tracking-tight:  -0.4px;
+  --tracking-normal: 0;
+  --tracking-wide:   1.5px;
+  --tracking-wider:  2px;     /* mono kickers / eyebrows */
+
+  /* ----------------------------------------------------------------------
+     5 · SPACING SCALE  (4px base — use for padding, gap, margin)
+     ---------------------------------------------------------------------- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-9:  36px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ----------------------------------------------------------------------
+     6 · RADII
+     ---------------------------------------------------------------------- */
+  --radius-sm:   6px;
+  --radius-md:   12px;
+  --radius-lg:   20px;
+  --radius-pill: 999px;
+
+  /* ----------------------------------------------------------------------
+     7 · BORDERS & SHADOWS
+     Signature look: a 2px solid ink outline + a hard offset "sticker" shadow
+     (no blur). Soft shadows exist for overlays/modals.
+     ---------------------------------------------------------------------- */
+  --border-width:      2px;
+  --border-hairline:   1.5px;
+  --outline:           var(--border-width) solid var(--color-border);
+
+  --shadow-offset-sm:  3px 3px 0 var(--color-border);   /* cards, chips        */
+  --shadow-offset-md:  4px 4px 0 var(--color-border);   /* panels, hovered     */
+  --shadow-offset-lg:  8px 8px 0 var(--color-border);   /* modals              */
+  --shadow-offset-accent: 3px 3px 0 var(--color-primary); /* primary CTA       */
+
+  --shadow-soft-sm:  0 1px 2px rgba(26,19,32,0.08), 0 2px 6px rgba(26,19,32,0.06);
+  --shadow-soft-md:  0 2px 4px rgba(26,19,32,0.10), 0 12px 28px rgba(26,19,32,0.12);
+  --shadow-soft-lg:  0 4px 8px rgba(26,19,32,0.12), 0 24px 56px rgba(26,19,32,0.20);
+
+  /* ----------------------------------------------------------------------
+     8 · MOTION
+     ---------------------------------------------------------------------- */
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-bounce:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast:   0.12s;
+  --dur-base:   0.18s;
+  --dur-slow:   0.3s;
+
+  /* ----------------------------------------------------------------------
+     9 · LAYOUT
+     ---------------------------------------------------------------------- */
+  --layout-max:        1600px;  /* max content width            */
+  --layout-gutter:     36px;    /* page side padding (desktop)   */
+  --layout-gutter-sm:  20px;    /* page side padding (mobile)    */
+  --z-header:   30;
+  --z-overlay:  60;
+  --z-float:    20;
+
+  /* ----------------------------------------------------------------------
+     10 · IMAGE / ASSET VARIABLES
+     Point these at real files once you have them. Components reference the
+     variable, e.g.  background-image: var(--img-hero);
+     Until a real asset is dropped in, the value falls back to "none" and the
+     component shows its drawn SVG placeholder.
+     ---------------------------------------------------------------------- */
+  --img-logo:           url("assets/logo.svg");        /* brand wordmark / mark        */
+  --img-bag:            url("assets/shopping-bag.svg"); /* centerpiece shopping bag     */
+  --img-hero:           none;                           /* optional hero banner         */
+  --img-pattern-bg:     none;                           /* optional page bg texture     */
+
+  /* Per-category banner art (optional) */
+  --img-cat-pokemon:    none;
+  --img-cat-magic:      none;
+  --img-cat-yugioh:     none;
+  --img-cat-lorcana:    none;
+  --img-cat-onepiece:   none;
+
+  /* Product imagery convention:
+     Each product object carries its own image URL from the DB
+     (e.g. product.image). Render it into a fixed slot sized by these tokens
+     so the grid stays even regardless of source resolution.               */
+  --img-product-ratio:  3 / 4;      /* aspect-ratio of a product image slot */
+  --img-product-fit:    contain;    /* object-fit for product images        */
+  --img-thumb-size:     56px;       /* cart/line-item thumbnail             */
+}
+
+/* ============================================================================
+   OPTIONAL ALTERNATE THEMES
+   Apply by adding the class to <html> or <body>; tokens cascade automatically.
+   ============================================================================ */
+
+/* Dark / neon — white-purple inverted */
+:root.theme-dark,
+.theme-dark {
+  --color-bg:          #120d18;
+  --color-surface:     #1d1726;
+  --color-surface-alt: #241c30;
+  --color-ink:         #f3eefb;
+  --color-text:        #f3eefb;
+  --color-text-muted:  #9b92ad;
+  --color-border:      #a07cff;
+  --color-border-soft: #2e2640;
+  --color-primary:     #a07cff;
+  --color-primary-strong:#b89bff;
+  --color-primary-tint:#241c30;
+}

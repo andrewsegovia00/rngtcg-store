@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="robots" content="noindex" />
+<meta name="description" content="Order confirmed — your sealed product ships within 24 hours." />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>R&G TCG — Order Confirmed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="styles.css" />
+<style>
+body{min-height:100vh;display:grid;place-items:center;padding:var(--space-6);background:var(--color-bg);background-image:radial-gradient(circle at 1px 1px, rgba(26,19,32,.05) 1px, transparent 0);background-size:28px 28px}.done-card{width:min(640px,100%);text-align:center;background:var(--color-surface);border:var(--outline);border-radius:var(--radius-lg);box-shadow:var(--shadow-offset-lg);padding:var(--space-12) var(--space-8)}.done-mark{width:86px;height:86px;margin:0 auto var(--space-5);display:grid;place-items:center;border:var(--outline);border-radius:999px;background:var(--color-success);box-shadow:var(--shadow-offset-md);color:#fff;font-size:42px}.done-card h1{font-family:var(--font-display);font-size:var(--text-display-lg);font-weight:400;line-height:1;margin-bottom:var(--space-3)}.done-card p{color:var(--color-text-muted);margin-bottom:var(--space-3)}.session{display:inline-block;margin:var(--space-4) 0 var(--space-6);padding:var(--space-2) var(--space-4);border:var(--outline);border-radius:var(--radius-pill);background:var(--color-surface-alt);font-family:var(--font-mono);font-size:var(--text-label-sm);font-weight:800;letter-spacing:.8px}.actions{display:flex;gap:var(--space-3);justify-content:center;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);border:var(--outline);border-radius:var(--radius-pill);box-shadow:var(--shadow-offset-sm);padding:var(--space-3) var(--space-5);font-weight:800;background:var(--color-surface)}.btn--primary{background:var(--color-primary);color:#fff}.order-box{display:none;text-align:left;margin:var(--space-5) auto var(--space-6);border:var(--outline);border-radius:var(--radius-md);background:var(--color-surface-alt);box-shadow:var(--shadow-offset-sm);overflow:hidden}.order-box.open{display:block}.order-head{padding:var(--space-4);border-bottom:var(--outline);display:flex;justify-content:space-between;gap:var(--space-4);align-items:center}.order-no{font-family:var(--font-display);font-size:var(--text-display-sm)}.order-status{font-family:var(--font-mono);font-size:var(--text-label);text-transform:uppercase;letter-spacing:1px;color:var(--color-success);font-weight:900}.order-lines{padding:var(--space-3) var(--space-4)}.order-line{display:flex;justify-content:space-between;gap:var(--space-4);padding:var(--space-2) 0;border-bottom:1.5px solid var(--color-border-soft);font-size:var(--text-body-sm)}.order-line:last-child{border-bottom:none}.order-line b{font-family:var(--font-display);font-size:var(--text-body-lg);font-weight:400}.order-meta{font-family:var(--font-mono);font-size:var(--text-label-sm);letter-spacing:.5px;color:var(--color-text-muted);text-transform:uppercase}.order-total{padding:var(--space-4);border-top:var(--outline);display:flex;justify-content:space-between;align-items:baseline}.order-total span{font-family:var(--font-mono);font-size:var(--text-label);text-transform:uppercase;letter-spacing:1px;color:var(--color-text-muted)}.order-total strong{font-family:var(--font-display);font-size:var(--text-display-md);font-weight:400}
+</style>
+</head>
+<body>
+  <main class="done-card">
+    <div class="done-mark">✓</div>
+    <h1>Order confirmed</h1>
+    <p id="doneText">Stripe accepted the checkout. Loading your order details…</p>
+    <span class="session" id="sessionId">SESSION</span>
+
+    <section class="order-box" id="orderBox">
+      <div class="order-head">
+        <div>
+          <div class="order-meta">Order number</div>
+          <div class="order-no" id="orderNumber">RG-00000000</div>
+        </div>
+        <div class="order-status" id="orderStatus">Paid</div>
+      </div>
+      <div class="order-lines" id="orderLines"></div>
+      <div class="order-total"><span>Total before tax</span><strong id="orderTotal">$0.00</strong></div>
+    </section>
+
+    <div class="actions">
+      <a class="btn btn--primary" href="index.html">Back to shop</a>
+      <a class="btn" href="checkout.html">View checkout</a>
+    </div>
+  </main>
+<script>
+const money = cents => "$" + (Number(cents || 0) / 100).toFixed(2);
+const sessionId = new URLSearchParams(location.search).get('session_id');
+if (sessionId) document.getElementById('sessionId').textContent = sessionId;
+
+async function loadOrder(){
+  if (!sessionId || location.protocol === 'file:') {
+    document.getElementById('doneText').textContent = 'Stripe accepted the checkout. Supabase order lookup runs when deployed through Cloudflare Pages / Wrangler.';
+    return;
+  }
+  try {
+    const res = await fetch('/api/order-status?session_id=' + encodeURIComponent(sessionId), { cache: 'no-store' });
+    const data = await res.json();
+    if (!data.found || !data.order) {
+      document.getElementById('doneText').textContent = data.message || 'Payment succeeded. The webhook may still be finishing the order update.';
+      return;
+    }
+    const order = data.order;
+    document.getElementById('doneText').textContent = 'Your loot is locked in. A confirmation email will be sent by Stripe.';
+    document.getElementById('orderNumber').textContent = order.order_number;
+    document.getElementById('orderStatus').textContent = order.status;
+    document.getElementById('orderTotal').textContent = money(order.total_before_tax_cents);
+    const lines = order.checkout_order_items || [];
+    document.getElementById('orderLines').innerHTML = lines.map(l => `
+      <div class="order-line">
+        <div><b>${l.title}</b><div class="order-meta">${l.category} · ${l.language} · ${l.format} · ${l.set_code} · qty ${l.quantity}</div></div>
+        <strong>${money(l.line_amount_cents)}</strong>
+      </div>`).join('');
+    document.getElementById('orderBox').classList.add('open');
+    if (order.status === 'paid') localStorage.removeItem('rg_tcg_cart');
+  } catch (e) {
+    document.getElementById('doneText').textContent = 'Payment succeeded. Order details could not be loaded yet.';
+  }
+}
+loadOrder();
+</script>
+</body>
+</html>

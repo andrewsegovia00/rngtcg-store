@@ -1,0 +1,13 @@
+{
+  "name": "rg-tcg-complete-mvp",
+  "version": "1.0.0-mvp",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler pages dev . --compatibility-date=2025-08-01",
+    "zip": "cd .. && zip -r rg-tcg-complete-mvp.zip rg-tcg-complete-mvp -x \"rg-tcg-complete-mvp/node_modules/*\" \"rg-tcg-complete-mvp/.dev.vars\""
+  },
+  "devDependencies": {
+    "wrangler": "latest"
+  },
+  "type": "module"
+}

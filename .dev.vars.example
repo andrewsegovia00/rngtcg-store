@@ -1,0 +1,13 @@
+# Copy to .dev.vars for local Wrangler dev.
+# Never commit real keys.
+STRIPE_SECRET_KEY=sk_test_replace_me
+STRIPE_WEBHOOK_SECRET=whsec_replace_me
+SITE_URL=http://localhost:8788
+
+# Block 7 Supabase order/inventory storage.
+# Use the service role key ONLY in Cloudflare env vars / .dev.vars, never browser code.
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=replace_me
+
+# Admin dashboard MVP token. Make this long/random.
+ADMIN_TOKEN=change-me-to-a-long-random-token

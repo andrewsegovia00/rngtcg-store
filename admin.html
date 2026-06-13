@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="robots" content="noindex" />
+<meta name="description" content="R&G TCG admin." />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>R&G TCG — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <header class="admin-header">
+    <a class="brand" href="index.html" aria-label="Back to shop">
+      <span class="brand__mark">R&G</span>
+      <span>
+        <span class="brand__name">R&G TCG</span>
+        <span class="brand__sub">Private shop ops</span>
+      </span>
+    </a>
+    <div class="admin-actions">
+      <a class="link-pill" href="index.html">Shop</a>
+      <button class="link-pill" id="refreshBtn">Refresh</button>
+      <button class="link-pill danger" id="lockBtn">Lock</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero-admin">
+      <div>
+        <p class="eyebrow">Block 8 · Admin MVP</p>
+        <h1>Command center</h1>
+        <p>View recent orders, watch reserved inventory, update stock, toggle active products, and release abandoned holds without opening Supabase.</p>
+      </div>
+      <form class="token-card" id="tokenForm">
+        <label for="adminToken">Admin token</label>
+        <div class="token-row">
+          <input id="adminToken" type="password" autocomplete="off" placeholder="Paste ADMIN_TOKEN" />
+          <button type="submit">Unlock</button>
+        </div>
+        <p>Stored in this browser session only. Server still checks the token on every admin API call.</p>
+      </form>
+    </section>
+
+    <section class="status" id="status" hidden></section>
+
+    <section class="metric-grid" id="metrics" aria-label="Store metrics"></section>
+
+    <section class="panel">
+      <div class="panel__head">
+        <div>
+          <p class="eyebrow">Inventory</p>
+          <h2>Products & stock</h2>
+        </div>
+        <div class="filter-row">
+          <input id="productSearch" type="search" placeholder="Search product / SKU…" />
+          <select id="stockFilter">
+            <option value="all">All stock</option>
+            <option value="low">Low stock</option>
+            <option value="reserved">Reserved</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="inventoryTable">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Lang</th>
+              <th>Format</th>
+              <th>SKU</th>
+              <th>Price</th>
+              <th>On hand</th>
+              <th>Avail.</th>
+              <th>Reserved</th>
+              <th>Sold</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel__head">
+        <div>
+          <p class="eyebrow">Orders</p>
+          <h2>Recent checkout orders</h2>
+        </div>
+        <select id="orderFilter">
+          <option value="all">All orders</option>
+          <option value="pending">Pending holds</option>
+          <option value="paid">Paid</option>
+          <option value="released">Released</option>
+          <option value="expired">Expired</option>
+        </select>
+      </div>
+      <div class="orders" id="orders"></div>
+    </section>
+  </main>
+
+  <dialog class="dialog" id="variantDialog">
+    <form method="dialog" class="dialog__inner" id="variantForm">
+      <button class="dialog__x" value="cancel" aria-label="Close">×</button>
+      <p class="eyebrow">Update variant</p>
+      <h3 id="variantTitle">Variant</h3>
+      <input type="hidden" id="variantSku" />
+      <label>Stock on hand
+        <input id="variantStock" type="number" min="0" step="1" />
+      </label>
+      <label>Price
+        <input id="variantPrice" type="number" min="0" step="0.01" />
+      </label>
+      <label class="check"><input id="variantActive" type="checkbox" /> Active variant</label>
+      <div class="dialog__actions">
+        <button value="cancel" type="button" id="cancelVariant">Cancel</button>
+        <button class="primary" type="submit">Save changes</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="admin.js"></script>
+</body>
+</html>
