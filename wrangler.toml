@@ -1,0 +1,11 @@
+# Cloudflare Pages project config.
+# `pages_build_output_dir = "."` because this is a no-build static site:
+# the HTML/CSS/JS live in the repo root and Functions live in ./functions.
+# The project name must match the Pages project you create in the dashboard.
+name = "rg-tcg"
+compatibility_date = "2025-08-01"
+pages_build_output_dir = "."
+
+# NOTE: Secrets/env vars are NOT set here (this file is committed).
+# Set them in the Cloudflare dashboard → your Pages project →
+# Settings → Variables and Secrets (Production). See GO_LIVE.md.
