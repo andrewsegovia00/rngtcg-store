@@ -95,6 +95,8 @@ button { cursor: pointer; }
 .badge.warn { background: #fff6e9; color: var(--color-warning); }
 .badge.bad { background: #fff0f0; color: var(--color-danger); }
 .badge.dark { background: var(--color-ink); color: #fff; }
+.badge.live { background: #f3e9ff; color: var(--color-primary-strong); }
+.order-tiktok { font: var(--weight-bold) var(--text-label-sm) var(--font-mono); color: var(--color-primary-strong); background: var(--color-primary-tint); border: 1.5px solid var(--color-primary-strong); border-radius: var(--radius-pill); padding: 2px 7px; vertical-align: middle; }
 .tiny-edit { display: flex; gap: var(--space-2); align-items: center; }
 .tiny-edit input { width: 82px; border: var(--outline); border-radius: var(--radius-sm); padding: var(--space-2); background: var(--color-surface); }
 .small-btn { padding: var(--space-2) var(--space-3); font: var(--weight-bold) var(--text-label-sm) var(--font-mono); text-transform: uppercase; background: var(--color-primary); }

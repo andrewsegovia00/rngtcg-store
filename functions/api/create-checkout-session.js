@@ -1,5 +1,5 @@
 import { productById, unitPrice, toCents, categoryShort, languageShort } from "../_lib/catalog.js";
-import { hasSupabase, supabaseRpc, maybeReleaseReservation } from "../_lib/supabase.js";
+import { hasSupabase, supabaseRpc, supabaseFetch, maybeReleaseReservation } from "../_lib/supabase.js";
 
 const json = (body, status = 200) => new Response(JSON.stringify(body, null, 2), {
   status,
@@ -112,6 +112,8 @@ export async function onRequestPost(context) {
   let stripeLines = [];
   let subtotal = 0;
 
+  const tiktok = typeof payload.tiktok_username === "string" ? payload.tiktok_username.trim().replace(/^@+/, "").slice(0, 60) : "";
+
   if (supabaseEnabled) {
     try {
       reservation = await createReservationIfConfigured(env, payload);
@@ -120,6 +122,16 @@ export async function onRequestPost(context) {
         error: error.message || "Could not reserve inventory.",
         details: error.details || null
       }, error.status || 400);
+    }
+    // Store the TikTok handle on the freshly-created order (best-effort).
+    if (tiktok && reservation?.order_id) {
+      try {
+        await supabaseFetch(env, `/checkout_orders?id=eq.${encodeURIComponent(reservation.order_id)}`, {
+          method: "PATCH",
+          headers: { prefer: "return=minimal" },
+          body: JSON.stringify({ tiktok_username: tiktok })
+        });
+      } catch (e) { console.warn("Could not save tiktok_username", e.message); }
     }
     stripeLines = (reservation?.lines || []).map(l => ({
       name: `${l.title} — ${l.format === "box" ? "Booster Box" : "Booster Pack"}`,
@@ -174,6 +186,7 @@ export async function onRequestPost(context) {
   append(params, "metadata[subtotal_cents]", subtotal);
   if (orderId) append(params, "metadata[order_id]", orderId);
   if (orderNumber) append(params, "metadata[order_number]", orderNumber);
+  if (tiktok) append(params, "metadata[tiktok_username]", tiktok);
 
   if (payload.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
     append(params, "customer_email", payload.email);

@@ -50,14 +50,10 @@ const PRODUCTS = [
   // One Piece (Japanese)
   mk("op-jp-prb01","onepiece","PRB01","PRB01",4.26,42.56,{stock:16,tone:"#c94b9b",symbol:"☠",language:"japanese",image:IMG+"prb01-box.png",imagePack:IMG+"prb01-pack.png"}),
   mk("op-jp-eb01","onepiece","EB01","EB01",1.88,45.23,{stock:19,tone:"#2a6f8e",symbol:"☠",language:"japanese",image:IMG+"eb01-box.png",imagePack:IMG+"eb01-pack.png"}),
-  mk("op-jp-eb01-loose","onepiece","EB01 (loose)","EB01",null,45.37,{stock:1,tone:"#2a6f8e",symbol:"☠",language:"japanese",image:IMG+"eb01-box.png"}),
-  mk("op-jp-op05-loose","onepiece","OP-05 (loose)","OP05",null,108.50,{stock:2,tone:"#1d3557",symbol:"☠",language:"japanese"}),
-  mk("op-jp-op05","onepiece","OP-05","OP05",4.52,null,{stock:19,tone:"#1d3557",symbol:"☠",language:"japanese"}),
-  mk("op-jp-op09-loose","onepiece","OP-09 (loose)","OP09",null,62.10,{stock:1,tone:"#2a8f64",symbol:"☠",language:"japanese"}),
-  mk("op-jp-op09","onepiece","OP-09","OP09",2.59,null,{stock:12,tone:"#2a8f64",symbol:"☠",language:"japanese"}),
+  mk("op-jp-op05","onepiece","OP-05","OP05",4.52,108.50,{stock:19,tone:"#1d3557",symbol:"☠",language:"japanese"}),
+  mk("op-jp-op09","onepiece","OP-09","OP09",2.59,62.10,{stock:12,tone:"#2a8f64",symbol:"☠",language:"japanese"}),
   mk("op-jp-op01","onepiece","OP-01","OP01",4.30,103.23,{stock:9,tone:"#9a2b1f",symbol:"☠",language:"japanese"}),
-  mk("op-jp-op07","onepiece","OP-07","OP07",2.09,50.09,{stock:5,tone:"#3aa0a8",symbol:"☠",language:"japanese",image:IMG+"op07-box.png",imagePack:IMG+"op07-pack.png"}),
-  mk("op-jp-op07-loose","onepiece","OP-07 (loose)","OP07",null,51.20,{stock:1,tone:"#3aa0a8",symbol:"☠",language:"japanese",image:IMG+"op07-box.png"}),
+  mk("op-jp-op07","onepiece","OP-07","OP07",2.09,50.09,{stock:6,tone:"#3aa0a8",symbol:"☠",language:"japanese",image:IMG+"op07-box.png",imagePack:IMG+"op07-pack.png"}),
   mk("op-jp-op08","onepiece","OP-08","OP08",1.91,45.92,{stock:21,tone:"#6a4ea3",symbol:"☠",language:"japanese",image:IMG+"op08-box.png",imagePack:IMG+"op08-pack.png"}),
 
   // Pokémon (English)

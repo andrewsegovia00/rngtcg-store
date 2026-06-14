@@ -53,7 +53,7 @@ export async function onRequestGet({ request, env }) {
     const orders = await supabaseFetch(
       env,
       "/checkout_orders?status=eq.paid&fulfilled_at=is.null" +
-        "&select=order_number,paid_at,created_at,customer_email,stripe_customer_email," +
+        "&select=order_number,paid_at,created_at,customer_email,stripe_customer_email,tiktok_username," +
         "ship_name,ship_phone,ship_line1,ship_line2,ship_city,ship_state,ship_postal_code,ship_country," +
         "total_before_tax_cents,checkout_order_items(title,format,language,quantity)" +
         "&order=paid_at.asc"
@@ -64,6 +64,7 @@ export async function onRequestGet({ request, env }) {
     const headers = [
       "Order Number",
       "Order Date",
+      "TikTok Username",
       "Recipient Name",
       "Email",
       "Phone",
@@ -85,6 +86,7 @@ export async function onRequestGet({ request, env }) {
       return [
         o.order_number,
         date ? new Date(date).toISOString().slice(0, 10) : "",
+        o.tiktok_username ? `@${o.tiktok_username}` : "",
         o.ship_name || "",
         o.customer_email || o.stripe_customer_email || "",
         o.ship_phone || "",

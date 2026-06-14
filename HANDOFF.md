@@ -134,6 +134,16 @@ The demo catalog was replaced with the real inventory (CSV import). Demo product
 
 **Excluded for now** (per "box/pack only" decision): Phantasmal Flames **Blisters (qty 20)** and **3-Pack (qty 1)** — the schema only allows `pack`/`box`. Re-add once formats are extended. Products with **no photo** (tiles): QC Edition red, OP-05/OP-09/OP-01, Phantasmal Flames. The zip also contains art for sets not in the current CSV (EB03/04, OP10/12/14, Mega Dream, Nihil Zero, PRB02, QC Rarity) — available when those come in stock.
 
+Follow-up fixes: the CSS tile was painting over photos (`.pack-mock{display:flex}` beat the `hidden` attr) — fixed with `.pack-mock[hidden]{display:none}`. The internal "(loose)" products were merged away (no customer-facing "(loose)"): OP-05/OP-09 gained the loose box as their box variant; EB01/OP-07 absorbed the single loose box into stock.
+
+### TikTok username capture + order fulfillment stages ✅ DONE
+- **TikTok username** captured at checkout (required field, `#tiktokUsername`), stored on `checkout_orders.tiktok_username` (PATCH after reservation; also in Stripe metadata as backup). Shown as a chip on the dashboard order card and added as a **TikTok Username** column in the PirateShip CSV (so you can call buyers out on live without revealing their name).
+- **Order stages** via `checkout_orders.stage` (`new` → `opened_live` → `resolved` → `shipped`; default `new`). Dashboard stack is newest-first with a stage filter ("To ship · all / New / Opened live / Resolved", "Shipped"). Each paid/unshipped card has **Opened live / Resolved / ↺ New / Mark shipped** buttons. `new POST /api/admin-set-order-stage` handles the pre-ship moves; `admin-mark-fulfilled` sets `stage='shipped'` (+ `fulfilled_at`/tracking) and `'resolved'` on undo. Export still keys on `fulfilled_at`, so stages don't disturb the PirateShip flow.
+- **Verified** on local wrangler: stage transitions, invalid-stage guard, mark shipped, CSV TikTok column + row, admin card (chip + badge + buttons), shop image fix + no "(loose)" names.
+
+### Phase 6 (NEXT) — dynamic shipping (decided: **Shippo**)
+Cheapest path: **Shippo** (no monthly fee, free rating API, pay-per-label; can attach own carrier accounts). Plan: add `weight_oz` per variant, quote live USPS rates at checkout from cart weight + destination, fall back to flat weight-tiers if the API is down. Then **bundling** (merge same-buyer paid+unshipped orders in the dashboard, refund excess shipping — never ship unpaid) and **weight variance** at fulfillment (Sealed / All cards / Hits-only ~3oz; charge sealed weight at checkout, pick actual mode when shipping). **Editable email template** deferred until the email design is locked.
+
 ---
 
 ## 5. Gotchas for the next session

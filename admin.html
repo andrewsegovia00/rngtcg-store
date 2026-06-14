@@ -95,11 +95,13 @@
         <div class="filter-row">
           <button class="link-pill" id="exportBtn" title="Download paid, not-yet-shipped orders as a PirateShip CSV">Export PirateShip CSV</button>
           <select id="orderFilter">
-            <option value="unfulfilled">Paid · to ship</option>
-            <option value="fulfilled">Shipped</option>
-            <option value="all">All orders</option>
+            <option value="toship">To ship · all</option>
+            <option value="new">&nbsp;&nbsp;· New</option>
+            <option value="opened_live">&nbsp;&nbsp;· Opened live</option>
+            <option value="resolved">&nbsp;&nbsp;· Resolved</option>
+            <option value="shipped">Shipped</option>
             <option value="pending">Pending holds</option>
-            <option value="paid">Paid (all)</option>
+            <option value="all">All orders</option>
             <option value="released">Released</option>
             <option value="expired">Expired</option>
           </select>

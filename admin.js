@@ -188,11 +188,16 @@ function statusBadge(status) {
   return `<span class="badge ${cls}">${cap(status)}</span>`;
 }
 
+const STAGE_LABEL = { new: "New", opened_live: "Opened live", resolved: "Resolved", shipped: "Shipped" };
+
 function orderMatchesFilter(order, mode) {
   if (mode === "all") return true;
-  if (mode === "unfulfilled") return order.status === "paid" && !order.fulfilled_at;
-  if (mode === "fulfilled") return order.status === "paid" && !!order.fulfilled_at;
-  return order.status === mode;
+  const paid = order.status === "paid";
+  if (mode === "toship") return paid && !order.fulfilled_at;
+  if (mode === "shipped") return paid && !!order.fulfilled_at;
+  if (mode === "new" || mode === "opened_live" || mode === "resolved")
+    return paid && !order.fulfilled_at && (order.stage || "new") === mode;
+  return order.status === mode; // pending / released / expired
 }
 
 function shipAddress(order) {
@@ -216,16 +221,18 @@ function renderOrders() {
     const canRelease = order.status === "pending";
     const isPaid = order.status === "paid";
     const isFulfilled = isPaid && !!order.fulfilled_at;
-    const fulfillBadge = isFulfilled
+    const stage = order.stage || "new";
+    const tiktok = order.tiktok_username ? `<span class="order-tiktok">@${order.tiktok_username}</span>` : "";
+    const stageBadge = isFulfilled
       ? `<span class="badge good">Shipped ${fmtDate(order.fulfilled_at)}${order.tracking_number ? ` · ${order.tracking_number}` : ""}</span>`
-      : isPaid ? `<span class="badge warn">To ship</span>` : "";
+      : isPaid ? `<span class="badge ${stage === 'opened_live' ? 'live' : stage === 'resolved' ? 'dark' : 'warn'}">${STAGE_LABEL[stage] || stage}</span>` : "";
     return `<article class="order-card">
       <div class="order-head">
         <div>
-          <div class="order-title">${order.order_number}</div>
+          <div class="order-title">${order.order_number} ${tiktok}</div>
           <div class="order-email">${email} · ${fmtDate(order.created_at)}</div>
         </div>
-        <div class="tiny-edit">${statusBadge(order.status)}${fulfillBadge}</div>
+        <div class="tiny-edit">${statusBadge(order.status)}${stageBadge}</div>
       </div>
       ${isPaid ? shipAddress(order) : ""}
       <div class="order-lines">
@@ -235,6 +242,9 @@ function renderOrders() {
         <span class="order-total">${money(order.total_before_tax_cents)}</span>
         <div class="tiny-edit">
           ${canRelease ? `<span class="mono-mini">Expires ${fmtDate(order.expires_at)}</span><button class="small-btn danger" data-release="${order.id}">Release hold</button>` : ""}
+          ${isPaid && !isFulfilled && stage !== "opened_live" ? `<button class="small-btn ghost" data-stage="opened_live" data-id="${order.id}">Opened live</button>` : ""}
+          ${isPaid && !isFulfilled && stage !== "resolved" ? `<button class="small-btn ghost" data-stage="resolved" data-id="${order.id}">Resolved</button>` : ""}
+          ${isPaid && !isFulfilled && stage !== "new" ? `<button class="small-btn ghost" data-stage="new" data-id="${order.id}">↺ New</button>` : ""}
           ${isPaid && !isFulfilled ? `<button class="small-btn" data-fulfill="${order.id}">Mark shipped</button>` : ""}
           ${isFulfilled ? `<button class="small-btn ghost" data-unfulfill="${order.id}">Undo shipped</button>` : ""}
         </div>
@@ -245,6 +255,17 @@ function renderOrders() {
   $$('[data-release]').forEach(btn => btn.onclick = () => releaseOrder(btn.dataset.release));
   $$('[data-fulfill]').forEach(btn => btn.onclick = () => markFulfilled(btn.dataset.fulfill));
   $$('[data-unfulfill]').forEach(btn => btn.onclick = () => markFulfilled(btn.dataset.unfulfill, true));
+  $$('[data-stage]').forEach(btn => btn.onclick = () => setStage(btn.dataset.id, btn.dataset.stage));
+}
+
+async function setStage(orderId, stage) {
+  try {
+    await api("/api/admin-set-order-stage", { method: "POST", body: JSON.stringify({ order_id: orderId, stage }) });
+    showStatus(`Moved to ${STAGE_LABEL[stage] || stage}.`, "ok");
+    await load();
+  } catch (error) {
+    showStatus(error.message, "err");
+  }
 }
 
 async function releaseOrder(orderId) {
