@@ -19,8 +19,10 @@ R&G TCG is an online store selling **sealed TCG product** (Pokémon, One Piece, 
 
 ```bash
 # 1. Dev server (serves site + API at http://localhost:8788)
+#    Static site lives in ./public (set as pages_build_output_dir in wrangler.toml);
+#    do NOT pass a positional dir or it overrides the config. Functions are in ./functions.
 cd /Users/pantheon/Downloads/rg-tcg-complete-mvp
-npx wrangler pages dev . --compatibility-date=2025-08-01 --port 8788
+npx wrangler pages dev --compatibility-date=2025-08-01 --port 8788
 
 # 2. Stripe webhook listener (forwards events to the local webhook).
 #    Native binary (npx wrapper exits silently — call the binary directly):
