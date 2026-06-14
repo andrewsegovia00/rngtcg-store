@@ -30,8 +30,8 @@ Cloudflare's "click" deploy connects to a Git repo. The project has its own loca
 3. Build settings:
    - **Framework preset:** None
    - **Build command:** _(leave empty)_
-   - **Build output directory:** `/`
-   - The committed `wrangler.toml` already declares `pages_build_output_dir = "."` and `name = "rg-tcg"` — keep the project name **`rg-tcg`** so they match (or change both).
+   - **Build output directory:** `public`
+   - The committed `wrangler.toml` already declares `pages_build_output_dir = "public"` and `name = "rg-tcg"` — keep the project name **`rg-tcg`** so they match (or change both). Only `public/` is deployed; internal docs, `supabase/` SQL, and config stay private.
 4. **Save and Deploy.** First build deploys to `https://rg-tcg.pages.dev`. Functions under `functions/` are auto-detected.
 
 Don't test purchases yet — env vars come next.
