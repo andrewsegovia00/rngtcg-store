@@ -54,7 +54,6 @@ rg-tcg-complete-mvp/
 │  ├─ schema.sql                      # Tables + RPC functions
 │  └─ seed.sql                        # Sample products/variants
 ├─ package.json
-├─ .dev.vars.example
 ├─ KEYS_NEEDED.md
 └─ DEPLOYMENT_NOTES.md
 ```
