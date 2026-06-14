@@ -144,6 +144,7 @@ function openVariant(sku) {
   $("#variantSku").value = sku;
   $("#variantStock").value = row.variant.stock_on_hand;
   $("#variantPrice").value = (Number(row.variant.price_cents || 0) / 100).toFixed(2);
+  $("#variantWeight").value = row.variant.weight_oz ?? "";
   $("#variantActive").checked = Boolean(row.variant.active);
   $("#variantDialog").showModal();
 }
@@ -159,6 +160,7 @@ async function saveVariant(event) {
         sku,
         stock_on_hand: Number.parseInt($("#variantStock").value, 10),
         price_cents: Math.round(dollars * 100),
+        weight_oz: $("#variantWeight").value === "" ? undefined : Number.parseFloat($("#variantWeight").value),
         active: $("#variantActive").checked
       })
     });
@@ -235,11 +237,19 @@ function renderOrders() {
       : isPaid
         ? `<span class="badge ${tag === 'open_live' ? 'live' : 'dark'}">${TAG_LABEL[tag] || tag}</span>${ready ? `<span class="badge good">Ready</span>` : (tag === 'open_live' ? `<span class="badge warn">To open</span>` : "")}`
         : "";
+    const mode = order.ship_mode || "sealed";
     const tagSelect = isPaid && !isFulfilled
       ? `<select class="tag-select" data-id="${order.id}" title="Order type">
            <option value="sealed" ${tag==='sealed'?'selected':''}>Sealed</option>
            <option value="open_live" ${tag==='open_live'?'selected':''}>Open live</option>
          </select>` : "";
+    const modeSelect = isPaid && !isFulfilled
+      ? `<select class="tag-select" data-mode-id="${order.id}" title="Ship weight mode">
+           <option value="sealed" ${mode==='sealed'?'selected':''}>Ship: Sealed</option>
+           <option value="all_cards" ${mode==='all_cards'?'selected':''}>Ship: All cards</option>
+           <option value="hits_only" ${mode==='hits_only'?'selected':''}>Ship: Hits only</option>
+         </select>` : "";
+    const bundleBadge = order.bundle_id ? `<span class="badge live" title="${order.bundle_id}">Bundled</span>` : "";
     return `<article class="order-card${isFulfilled ? '' : ' is-actionable'}">
       <div class="order-head">
         <div class="order-head__main">
@@ -249,7 +259,7 @@ function renderOrders() {
             <div class="order-email">${email} · ${fmtDate(order.created_at)}</div>
           </div>
         </div>
-        <div class="tiny-edit">${statusBadge(order.status)}${stateBadge}</div>
+        <div class="tiny-edit">${statusBadge(order.status)}${stateBadge}${bundleBadge}</div>
       </div>
       ${isPaid ? shipAddress(order) : ""}
       <div class="order-lines">
@@ -260,6 +270,7 @@ function renderOrders() {
         <div class="tiny-edit">
           ${canRelease ? `<span class="mono-mini">Expires ${fmtDate(order.expires_at)}</span><button class="small-btn danger" data-release="${order.id}">Release hold</button>` : ""}
           ${tagSelect}
+          ${modeSelect}
           ${isPaid && !isFulfilled && !ready ? `<button class="small-btn" data-ready="${order.id}">Mark ready to ship</button>` : ""}
           ${isPaid && !isFulfilled ? `<button class="small-btn" data-fulfill="${order.id}">Mark shipped</button>` : ""}
           ${isFulfilled ? `<button class="small-btn ghost" data-unfulfill="${order.id}">Undo shipped</button>` : ""}
@@ -272,7 +283,8 @@ function renderOrders() {
   $$('[data-fulfill]').forEach(btn => btn.onclick = () => markFulfilled([btn.dataset.fulfill]));
   $$('[data-unfulfill]').forEach(btn => btn.onclick = () => markFulfilled([btn.dataset.unfulfill], true));
   $$('[data-ready]').forEach(btn => btn.onclick = () => updateOrders([btn.dataset.ready], { ready_to_ship: true }));
-  $$('.tag-select').forEach(sel => sel.onchange = () => updateOrders([sel.dataset.id], { order_tag: sel.value }));
+  $$('.tag-select[data-id]').forEach(sel => sel.onchange = () => updateOrders([sel.dataset.id], { order_tag: sel.value }));
+  $$('.tag-select[data-mode-id]').forEach(sel => sel.onchange = () => updateOrders([sel.dataset.modeId], { ship_mode: sel.value }));
   $$('.order-pick').forEach(cb => cb.onchange = () => {
     cb.checked ? selectedOrders.add(cb.dataset.id) : selectedOrders.delete(cb.dataset.id);
     renderBulkBar();
@@ -401,6 +413,8 @@ $("#bulkReady").onclick = () => selectedOrders.size && updateOrders([...selected
 $("#bulkShipped").onclick = () => selectedOrders.size && markFulfilled([...selectedOrders]);
 $("#bulkSealed").onclick = () => selectedOrders.size && updateOrders([...selectedOrders], { order_tag: "sealed" });
 $("#bulkOpen").onclick = () => selectedOrders.size && updateOrders([...selectedOrders], { order_tag: "open_live" });
+$("#bulkBundle").onclick = () => selectedOrders.size && updateOrders([...selectedOrders], { bundle: "new" });
+$("#bulkUnbundle").onclick = () => selectedOrders.size && updateOrders([...selectedOrders], { bundle: "clear" });
 $("#bulkClear").onclick = () => { selectedOrders.clear(); renderOrders(); };
 $("#variantForm").addEventListener("submit", saveVariant);
 $("#cancelVariant").onclick = () => $("#variantDialog").close();

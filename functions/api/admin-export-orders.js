@@ -44,6 +44,13 @@ function totalItemCount(items) {
   return (items || []).reduce((sum, line) => sum + Number(line.quantity || 0), 0);
 }
 
+// Weight variance: what actually ships depends on how the buyer wants it opened.
+function applyShipMode(baseOz, mode) {
+  if (mode === "hits_only") return 3;                         // just the chase cards in a mailer
+  if (mode === "all_cards") return Math.max(Math.round(baseOz * 0.5), 4); // loose cards, no box/wrappers
+  return baseOz;                                              // sealed = real weight
+}
+
 export async function onRequestGet({ request, env }) {
   const guard = requireAdmin(request, env);
   if (!guard.ok) return guard.response;
@@ -53,7 +60,7 @@ export async function onRequestGet({ request, env }) {
     const orders = await supabaseFetch(
       env,
       "/checkout_orders?status=eq.paid&ready_to_ship=eq.true&fulfilled_at=is.null" +
-        "&select=order_number,paid_at,created_at,customer_email,stripe_customer_email,tiktok_username," +
+        "&select=order_number,paid_at,created_at,customer_email,stripe_customer_email,tiktok_username,bundle_id,ship_mode," +
         "ship_name,ship_phone,ship_line1,ship_line2,ship_city,ship_state,ship_postal_code,ship_country," +
         "subtotal_cents,shipping_cents,checkout_order_items(title,format,language,quantity)" +
         "&order=paid_at.asc"
@@ -81,27 +88,42 @@ export async function onRequestGet({ request, env }) {
       "Shipping Paid (USD)"
     ];
 
-    const rows = list.map(o => {
-      const items = o.checkout_order_items || [];
-      const date = o.paid_at || o.created_at;
+    // Group bundled orders into one shipment (one label); solo orders stand alone.
+    const groups = new Map();
+    for (const o of list) {
+      const key = o.bundle_id || `solo:${o.order_number}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(o);
+    }
+
+    const rows = [...groups.values()].map(group => {
+      const head = group[0];
+      const items = group.flatMap(o => o.checkout_order_items || []);
+      const date = head.paid_at || head.created_at;
+      const weight = Math.max(
+        group.reduce((sum, o) => sum + applyShipMode(estimateOrderWeightOz(o.checkout_order_items || []), o.ship_mode || "sealed"), 0),
+        1
+      );
+      const itemTotal = group.reduce((s, o) => s + Number(o.subtotal_cents || 0), 0) / 100;
+      const shipPaid = group.reduce((s, o) => s + Number(o.shipping_cents || 0), 0) / 100;
       return [
-        o.order_number,
+        group.map(o => o.order_number).join(" + "),
         date ? new Date(date).toISOString().slice(0, 10) : "",
-        o.tiktok_username ? `@${o.tiktok_username}` : "",
-        o.ship_name || "",
-        o.customer_email || o.stripe_customer_email || "",
-        o.ship_phone || "",
-        o.ship_line1 || "",
-        o.ship_line2 || "",
-        o.ship_city || "",
-        o.ship_state || "",
-        o.ship_postal_code || "",
-        o.ship_country || "US",
+        head.tiktok_username ? `@${head.tiktok_username}` : "",
+        head.ship_name || "",
+        head.customer_email || head.stripe_customer_email || "",
+        head.ship_phone || "",
+        head.ship_line1 || "",
+        head.ship_line2 || "",
+        head.ship_city || "",
+        head.ship_state || "",
+        head.ship_postal_code || "",
+        head.ship_country || "US",
         describeItems(items),
         totalItemCount(items),
-        estimateOrderWeightOz(items),
-        (Number(o.subtotal_cents || 0) / 100).toFixed(2),
-        (Number(o.shipping_cents || 0) / 100).toFixed(2)
+        weight,
+        itemTotal.toFixed(2),
+        shipPaid.toFixed(2)
       ].map(csvCell).join(",");
     });
 
@@ -114,7 +136,7 @@ export async function onRequestGet({ request, env }) {
         "content-type": "text/csv; charset=utf-8",
         "content-disposition": `attachment; filename="${filename}"`,
         "cache-control": "no-store",
-        "x-order-count": String(list.length)
+        "x-order-count": String(rows.length)
       }
     });
   } catch (error) {

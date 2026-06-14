@@ -20,6 +20,11 @@ export async function onRequestPost({ request, env }) {
   try {
     if (payload.stock_on_hand !== undefined) patch.stock_on_hand = parseInteger(payload.stock_on_hand, "Stock", { min: 0, max: 100000 });
     if (payload.price_cents !== undefined) patch.price_cents = parseInteger(payload.price_cents, "Price cents", { min: 0, max: 10000000 });
+    if (payload.weight_oz !== undefined) {
+      const w = Number(payload.weight_oz);
+      if (!Number.isFinite(w) || w < 0 || w > 10000) throw new Error("Weight must be 0–10000 oz.");
+      patch.weight_oz = w;
+    }
     if (payload.active !== undefined) patch.active = Boolean(payload.active);
   } catch (error) {
     return json({ error: error.message }, 400);
@@ -28,7 +33,7 @@ export async function onRequestPost({ request, env }) {
   if (!Object.keys(patch).length) return json({ error: "Nothing to update." }, 400);
 
   try {
-    const updated = await supabaseFetch(env, `/product_variants?sku=eq.${encodeURIComponent(sku)}&select=sku,product_id,format,price_cents,stock_on_hand,stock_reserved,stock_sold,active`, {
+    const updated = await supabaseFetch(env, `/product_variants?sku=eq.${encodeURIComponent(sku)}&select=sku,product_id,format,price_cents,stock_on_hand,stock_reserved,stock_sold,weight_oz,active`, {
       method: "PATCH",
       headers: { prefer: "return=representation" },
       body: JSON.stringify(patch)

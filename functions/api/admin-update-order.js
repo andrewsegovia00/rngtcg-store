@@ -34,6 +34,16 @@ export async function onRequestPost({ request, env }) {
     if (payload.ready_to_ship === undefined) patch.ready_to_ship = payload.order_tag === "sealed";
   }
   if (payload.ready_to_ship !== undefined) patch.ready_to_ship = Boolean(payload.ready_to_ship);
+  if (payload.ship_mode !== undefined) {
+    if (!["sealed", "all_cards", "hits_only"].includes(payload.ship_mode)) {
+      return json({ error: "ship_mode must be sealed, all_cards, or hits_only." }, 400);
+    }
+    patch.ship_mode = payload.ship_mode;
+  }
+  // Bundling: 'new' groups the selected orders under one id; 'clear' un-bundles.
+  if (payload.bundle === "new") patch.bundle_id = (crypto.randomUUID && crypto.randomUUID()) || `b_${Date.now()}`;
+  else if (payload.bundle === "clear") patch.bundle_id = null;
+
   if (!Object.keys(patch).length) return json({ error: "Nothing to update." }, 400);
 
   const inList = ids.map(id => `"${id.replace(/"/g, "")}"`).join(",");

@@ -71,6 +71,8 @@ create table if not exists public.checkout_orders (
   tiktok_username text,
   order_tag text check (order_tag in ('sealed','open_live')),
   ready_to_ship boolean not null default false,
+  bundle_id text,
+  ship_mode text not null default 'sealed' check (ship_mode in ('sealed','all_cards','hits_only')),
   metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

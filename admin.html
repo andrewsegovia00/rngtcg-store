@@ -112,6 +112,8 @@
         <button class="small-btn" id="bulkShipped">Mark shipped</button>
         <button class="small-btn ghost" id="bulkSealed">Tag sealed</button>
         <button class="small-btn ghost" id="bulkOpen">Tag open live</button>
+        <button class="small-btn ghost" id="bulkBundle">Bundle</button>
+        <button class="small-btn ghost" id="bulkUnbundle">Unbundle</button>
         <button class="small-btn ghost" id="bulkClear">Clear</button>
       </div>
       <div class="orders" id="orders"></div>
@@ -142,6 +144,10 @@
       <label>Price
         <input id="variantPrice" type="number" min="0" step="0.01" />
       </label>
+      <label>Shipping weight (oz)
+        <input id="variantWeight" type="number" min="0" step="0.1" placeholder="box ~16, pack ~2" />
+      </label>
+      <p class="field-help">Used to quote live shipping rates. Estimate is fine; refine for heavy/light product.</p>
       <label class="check"><input id="variantActive" type="checkbox" /> Active variant</label>
       <p class="field-help">When on, this format (box/pack) shows in the shop and can be purchased. Turn it off to hide just this format without deleting the product.</p>
       <div class="dialog__actions">

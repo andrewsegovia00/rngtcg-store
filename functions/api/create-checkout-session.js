@@ -219,6 +219,18 @@ export async function onRequestPost(context) {
     append(params, "customer_email", payload.email);
   }
 
+  // Hand the address we collected to Stripe on the PaymentIntent so Radar can
+  // use it for fraud scoring (and it shows on the Stripe dashboard/receipt) —
+  // without making the customer re-enter it on the hosted page.
+  append(params, "payment_intent_data[shipping][name]", address.name || "Customer");
+  if (address.phone) append(params, "payment_intent_data[shipping][phone]", address.phone);
+  append(params, "payment_intent_data[shipping][address][line1]", address.line1);
+  if (address.line2) append(params, "payment_intent_data[shipping][address][line2]", address.line2);
+  append(params, "payment_intent_data[shipping][address][city]", address.city);
+  append(params, "payment_intent_data[shipping][address][state]", address.state);
+  append(params, "payment_intent_data[shipping][address][postal_code]", address.postal_code);
+  append(params, "payment_intent_data[shipping][address][country]", address.country || "US");
+
   stripeLines.forEach((line, i) => {
     append(params, `line_items[${i}][quantity]`, line.quantity);
     append(params, `line_items[${i}][price_data][currency]`, "usd");

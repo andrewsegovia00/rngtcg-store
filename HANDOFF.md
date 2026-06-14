@@ -166,11 +166,18 @@ Follow-up fixes: the CSS tile was painting over photos (`.pack-mock{display:flex
 2. **`SHIP_FROM_*`** in `.dev.vars` is a placeholder Austin address — set your real fulfillment origin (rates depend on it).
 3. **`RESEND_FROM_EMAIL` can't be a gmail.com address** — Resend only sends from a verified domain; emails will fail until you verify a domain (or use `onboarding@resend.dev` for testing).
 
-### Phase 7 (NEXT) — bundling + weight variance + editable email
-- **Bundling**: merge a buyer's paid+unshipped orders in the dashboard, refund excess shipping via Stripe — never ship unpaid.
-- **Weight variance** at fulfillment: Sealed / All cards / Hits-only (~3oz). Charge worst-case (sealed) weight at checkout; pick actual ship mode when shipping.
-- **Editable email template** once the design is locked (move logo/hero/headline/footer into a settings table editable from admin).
-- Refine **per-variant weights** (admin field) so quotes are accurate.
+### Phase 7 — bundling + weight variance + Stripe address ✅ DONE
+- **Stripe gets the address for fraud (Radar)**: `create-checkout-session` now passes the collected address via `payment_intent_data[shipping]` — Stripe sees it (Radar + dashboard + receipt) without the customer re-typing. Verified Stripe accepts it.
+- **Bundling (no refunds)**: `checkout_orders.bundle_id`. Bulk **Bundle / Unbundle** in the dashboard groups a buyer's paid+unshipped orders; the PirateShip export emits **one combined row** per bundle (joined order numbers, merged items, summed weight/value/shipping) so they ship in one package. Verified: 2 orders → 1 export row.
+- **Weight variance**: `checkout_orders.ship_mode` (`sealed`|`all_cards`|`hits_only`), per-order dropdown. Export weight = `applyShipMode(baseOz, mode)` — sealed = real, all_cards = ~half (min 4oz), hits_only = flat 3oz. Charge worst-case (sealed) at checkout; pick actual mode when shipping. Verified (bundle weight 16 sealed + 3 hits = 19oz).
+- **Per-variant weight admin field**: variant editor now edits `weight_oz` (drives live Shippo quotes). `admin-update-variant` accepts it.
+- **Live Shippo verified**: with the live key, `/api/shipping-quote` returns real UPS/USPS rates (rate-fetch is free; no labels bought).
+- Config now set: `SHIP_FROM_*` = Tempe AZ; `RESEND_FROM_EMAIL` = `onboarding@resend.dev` (test sender, works without a domain). **Restart wrangler** to load.
+
+### Phase 8 (NEXT) — editable email template
+Move the confirmation/welcome email's editable bits (logo, hero gif, headline, body, footer) into a `settings` table editable from a beefed-up admin page; `_lib/email.js` reads them with the current defaults as fallback. Deferred until the email design is finalized.
+
+Outstanding config: **Resend webhook** for email analytics — set `RESEND_WEBHOOK_SECRET` + point a Resend webhook at `https://YOUR-DOMAIN/api/resend-webhook` once deployed (needs a public URL). Swap `RESEND_FROM_EMAIL` to a verified domain when you have one.
 
 (Interim test path: Stripe is in **test mode**, so a full purchase with `test-01` + card `4242 4242 4242 4242` costs $0 real money even with the $5 shipping.)
 
