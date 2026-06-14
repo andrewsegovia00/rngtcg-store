@@ -64,7 +64,7 @@ export async function onRequestGet({ request, env }) {
     const headers = [
       "Order Number",
       "Order Date",
-      "TikTok Username",
+      "TikTok / Name",
       "Recipient Name",
       "Email",
       "Phone",

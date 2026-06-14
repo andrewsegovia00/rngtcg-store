@@ -499,7 +499,8 @@ create table if not exists public.newsletter_subscribers (
   email text not null unique,
   source text not null default 'checkout',
   subscribed_at timestamptz not null default now(),
-  unsubscribed_at timestamptz
+  unsubscribed_at timestamptz,
+  welcome_coupon_code text
 );
 
 create table if not exists public.order_recipients (

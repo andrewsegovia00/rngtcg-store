@@ -116,6 +116,59 @@ export function buildOrderEmailHtml(order, env) {
 </body></html>`;
 }
 
+export function buildWelcomeEmailHtml(code, percentOff, env) {
+  const discord = env.DISCORD_INVITE_URL || "https://discord.gg/JaaQuMrcTa";
+  const shop = (env.SITE_URL || "").replace(/\/$/, "") + "/index.html";
+  const logo = env.RESEND_LOGO_URL
+    ? `<img src="${escapeHtml(env.RESEND_LOGO_URL)}" alt="R&amp;G TCG" height="36" style="display:block;border:0;height:36px">`
+    : `<span style="font:700 24px/1 Georgia,serif;color:#fff">R&amp;G TCG</span>`;
+  return `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Welcome to R&G TCG</title></head>
+<body style="margin:0;padding:0;background:${COLORS.bg}">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.bg};padding:24px 12px"><tr><td align="center">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;background:#fff;border:2px solid ${COLORS.ink};border-radius:16px;overflow:hidden">
+      <tr><td style="background:${COLORS.ink};padding:20px 32px">${logo}</td></tr>
+      <tr><td style="padding:32px 32px 8px">
+        <p style="margin:0 0 8px;font:700 12px/1 'Courier New',monospace;letter-spacing:2px;text-transform:uppercase;color:${COLORS.purple}">Welcome to the crew</p>
+        <h1 style="margin:0;font:700 30px/1.1 Georgia,serif;color:${COLORS.ink}">Here's ${escapeHtml(percentOff)}% off your first order.</h1>
+        <p style="margin:12px 0 0;font:400 15px/1.6 Arial,sans-serif;color:${COLORS.muted}">Use this single-use code at checkout. Drops drop in Discord first — see you there.</p>
+      </td></tr>
+      <tr><td style="padding:20px 32px 8px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.bg};border:2px dashed ${COLORS.ink};border-radius:12px"><tr><td style="padding:18px;text-align:center">
+          <div style="font:700 11px/1 'Courier New',monospace;letter-spacing:1.5px;text-transform:uppercase;color:${COLORS.muted};margin-bottom:6px">Your code</div>
+          <div style="font:700 28px/1 Georgia,serif;color:${COLORS.ink};letter-spacing:1px">${escapeHtml(code)}</div>
+        </td></tr></table>
+      </td></tr>
+      <tr><td style="padding:18px 32px 8px">
+        <a href="${escapeHtml(shop)}" style="display:inline-block;background:${COLORS.purple};color:#fff;text-decoration:none;font:700 15px/1 Arial,sans-serif;padding:14px 24px;border-radius:999px;margin-right:8px">Shop sealed product</a>
+        <a href="${escapeHtml(discord)}" style="display:inline-block;background:${COLORS.ink};color:#fff;text-decoration:none;font:700 15px/1 Arial,sans-serif;padding:14px 24px;border-radius:999px">Join the Discord</a>
+      </td></tr>
+      <tr><td style="padding:20px 32px 32px">
+        <p style="margin:0;font:400 12px/1.5 Arial,sans-serif;color:${COLORS.muted}">One-time use. You're getting this because you signed up at R&amp;G TCG.</p>
+      </td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`;
+}
+
+export async function sendWelcomeEmail(env, to, code, percentOff) {
+  if (!hasResend(env) || !to) return { skipped: true };
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, "content-type": "application/json" },
+    body: JSON.stringify({
+      from: env.RESEND_FROM_EMAIL,
+      to: [to],
+      subject: `Your ${percentOff}% off code — R&G TCG`,
+      html: buildWelcomeEmailHtml(code, percentOff, env)
+    })
+  });
+  const text = await response.text();
+  let data = null; try { data = text ? JSON.parse(text) : null; } catch (_) { data = text; }
+  if (!response.ok) { const e = new Error(data?.message || `Resend send failed: ${response.status}`); e.status = response.status; throw e; }
+  return { ok: true, id: data?.id || null };
+}
+
 export async function sendOrderConfirmationEmail(env, order) {
   if (!hasResend(env)) return { skipped: "resend-not-configured" };
   const to = order.customer_email || order.stripe_customer_email;

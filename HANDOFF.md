@@ -141,8 +141,18 @@ Follow-up fixes: the CSS tile was painting over photos (`.pack-mock{display:flex
 - **Order stages** via `checkout_orders.stage` (`new` → `opened_live` → `resolved` → `shipped`; default `new`). Dashboard stack is newest-first with a stage filter ("To ship · all / New / Opened live / Resolved", "Shipped"). Each paid/unshipped card has **Opened live / Resolved / ↺ New / Mark shipped** buttons. `new POST /api/admin-set-order-stage` handles the pre-ship moves; `admin-mark-fulfilled` sets `stage='shipped'` (+ `fulfilled_at`/tracking) and `'resolved'` on undo. Export still keys on `fulfilled_at`, so stages don't disturb the PirateShip flow.
 - **Verified** on local wrangler: stage transitions, invalid-stage guard, mark shipped, CSV TikTok column + row, admin card (chip + badge + buttons), shop image fix + no "(loose)" names.
 
-### Phase 6 (NEXT) — dynamic shipping (decided: **Shippo**)
-Cheapest path: **Shippo** (no monthly fee, free rating API, pay-per-label; can attach own carrier accounts). Plan: add `weight_oz` per variant, quote live USPS rates at checkout from cart weight + destination, fall back to flat weight-tiers if the API is down. Then **bundling** (merge same-buyer paid+unshipped orders in the dashboard, refund excess shipping — never ship unpaid) and **weight variance** at fulfillment (Sealed / All cards / Hits-only ~3oz; charge sealed weight at checkout, pick actual mode when shipping). **Editable email template** deferred until the email design is locked.
+### Newsletter welcome coupon + first-visit popup ✅ DONE
+- **`POST /api/newsletter-signup`** (public): subscribe → mint ONE single-use 10%-off Stripe promo code (`_lib/coupons.js` `createSingleUseCoupon`) → email it (`_lib/email.js` `sendWelcomeEmail`). One welcome code per email (tracked in `newsletter_subscribers.welcome_coupon_code`) so re-submitting can't farm codes. Degrades: no Stripe = no code; no Resend = code returned in the response so the popup still shows it.
+- **First-visit popup** (`newsletter.js` + `.news-pop` styles, included on `index.html` + `landing.html`): shows once per browser (localStorage `rg_news_seen`), posts the email, shows the code / "check your email". Verified end-to-end (signup → coupon in DB linked to subscriber → dedup → modal success state).
+
+### Misc this session
+- Checkout field renamed **TikTok → "TikTok / preferred name"** (still stored in `tiktok_username`; some buyers watch from other socials, but most are TikTok). CSV column "TikTok / Name".
+- **Login removed** — there is no account system (checkout is guest-via-email by design). The shop header "Log in" is now a Discord button; checkout shows "Guest checkout". Real accounts (Supabase Auth) would be a future phase if wanted.
+- **5 demo orders** seeded for dashboard testing (tagged `metadata.demo=true`, mixed stages). They're dashboard-only (don't decrement stock). Clean up with: `delete from checkout_orders where metadata->>'demo'='true';`
+
+### Phase 6 (NEXT) — shipping: **flat weight-tiers** (Shippo shelved)
+Decision update: skip live rate APIs for now. Shippo's **rate-fetch is free** (it does NOT create/charge a label — you only pay when you *buy* one), but the live key needs a sales-rep request and the user prefers simplicity. **Plan:** add `weight_oz` per variant (use estimates: box ~16oz, pack ~2oz to start), sum cart weight, charge **flat tiers by weight** (e.g. ≤3oz, ≤8oz, ≤1lb, ≤2lb …) instead of the current flat $5/$15. Tune tiers to sit at/above real PirateShip cost. Revisit a live API later if margins need it.
+Then **bundling** (merge same-buyer paid+unshipped orders in the dashboard, refund excess shipping — never ship unpaid) and **weight variance** at fulfillment (Sealed / All cards / Hits-only ~3oz; charge sealed/worst-case weight at checkout, pick actual mode when shipping). **Editable email template** deferred until the design is locked.
 
 ---
 

@@ -66,6 +66,26 @@ button,input,select{font:inherit}
 .product-grid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:var(--space-4)}
 .card{display:flex; flex-direction:column; background:var(--color-surface); border:var(--outline); border-radius:14px; box-shadow:var(--shadow-offset-sm); overflow:hidden; transition:transform var(--dur-base) var(--ease-standard), box-shadow var(--dur-base)}.card:hover{transform:translate(-2px,-2px); box-shadow:var(--shadow-offset-md)}.card.is-dragging{opacity:.45; transform:scale(.97)}.card.is-out{opacity:.62}.card__art{aspect-ratio:1/1; display:grid; place-items:center; border-bottom:var(--outline); position:relative; background:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,.06)),var(--tone); cursor:grab}.card__art:active{cursor:grabbing}
 .pack-mock{width:82px;height:122px;background:rgba(255,255,255,.62);border:1.5px solid rgba(26,19,32,.2);box-shadow:10px 8px 0 rgba(255,255,255,.22);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;transform:rotate(.8deg)}.pack-mock__top{position:absolute;top:0;left:0;right:0;height:12px;background:rgba(26,19,32,.7)}.pack-mock__label{position:absolute;top:25px;background:rgba(26,19,32,.72);color:var(--color-primary-soft);font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:.7px;padding:3px 5px;border-radius:2px}.pack-mock__symbol{font-family:var(--font-display);font-size:38px;line-height:1;color:rgba(26,19,32,.72)}.pack-mock__foot{position:absolute;bottom:5px;left:5px;right:5px;font-family:var(--font-mono);font-size:6px;letter-spacing:.8px;text-transform:uppercase;color:rgba(26,19,32,.72)}.pack-mock--modal{width:112px;height:150px}.pack-mock--modal .pack-mock__symbol{font-size:48px}.pack-mock--modal .pack-mock__label{font-size:9px}.pack-mock--modal .pack-mock__foot{font-size:7px}
+.muted-note{font-family:var(--font-mono);font-size:var(--text-label-sm);letter-spacing:.5px;text-transform:uppercase;color:var(--color-text-muted)}
+
+/* First-visit newsletter popup */
+.news-pop{position:fixed;inset:0;z-index:80;background:rgba(26,19,32,.5);display:flex;align-items:center;justify-content:center;padding:var(--space-5);animation:newsfade .2s ease}
+@keyframes newsfade{from{opacity:0}to{opacity:1}}
+.news-pop__card{position:relative;width:100%;max-width:420px;background:var(--color-surface);border:var(--outline);border-radius:var(--radius-lg);box-shadow:var(--shadow-offset-lg);padding:var(--space-8)}
+.news-pop__x{position:absolute;top:var(--space-3);right:var(--space-3);width:32px;height:32px;cursor:pointer;background:var(--color-surface);border:var(--outline);border-radius:var(--radius-pill);box-shadow:var(--shadow-offset-sm);font-size:18px;line-height:1}
+.news-pop__kicker{font-family:var(--font-mono);font-size:var(--text-label);font-weight:700;letter-spacing:var(--tracking-wider);text-transform:uppercase;color:var(--color-primary-strong);margin-bottom:var(--space-2)}
+.news-pop__title{font-family:var(--font-display);font-size:30px;line-height:1.02;margin-bottom:var(--space-2)}
+.news-pop__sub{font-size:var(--text-body-sm);color:var(--color-text-muted);margin-bottom:var(--space-5)}
+.news-pop__form{display:flex;gap:var(--space-2)}
+.news-pop__form input{flex:1;min-width:0;border:var(--outline);border-radius:var(--radius-pill);padding:var(--space-3) var(--space-4);background:var(--color-surface-alt);outline:none}
+.news-pop__form button{cursor:pointer;border:var(--outline);border-radius:var(--radius-pill);background:var(--color-primary);color:#fff;font-family:var(--font-body);font-weight:700;padding:var(--space-3) var(--space-4);box-shadow:var(--shadow-offset-sm);white-space:nowrap}
+.news-pop__form button:hover{background:var(--color-primary-strong)}
+.news-pop__msg{margin-top:var(--space-3);font-size:var(--text-body-sm);min-height:1.2em}
+.news-pop__msg.is-ok{color:var(--color-success)}.news-pop__msg.is-err{color:var(--color-danger)}
+.news-pop__code{font-family:var(--font-display);font-size:22px;letter-spacing:1px;color:var(--color-primary-strong);display:inline-block;margin:6px 0}
+.news-pop__skip{display:block;margin:var(--space-4) auto 0;background:none;border:none;cursor:pointer;font-family:var(--font-mono);font-size:var(--text-label-sm);letter-spacing:.5px;text-transform:uppercase;color:var(--color-text-muted)}
+.news-pop__skip:hover{color:var(--color-ink)}
+
 .card__photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:1;background:var(--tone)}
 .pack-mock[hidden]{display:none}
 .card__badge,.card__sale{z-index:4}

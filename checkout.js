@@ -93,7 +93,7 @@ async function startStripeCheckout(){
   const email = $("#email")?.value?.trim() || "";
   const tiktok = $("#tiktokUsername")?.value?.trim() || "";
   if (!tiktok) {
-    setCheckoutState("error", "Add your TikTok username so we can call you out on live.");
+    setCheckoutState("error", "Add your TikTok handle or preferred name so we can shout you out on live.");
     $("#tiktokUsername")?.focus();
     return;
   }
