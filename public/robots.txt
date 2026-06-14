@@ -5,4 +5,4 @@ Disallow: /checkout.html
 Disallow: /success.html
 Disallow: /cancel.html
 
-Sitemap: https://YOUR-DOMAIN.com/sitemap.xml
+Sitemap: https://rngtcg.com/sitemap.xml
