@@ -23,6 +23,10 @@ const FLAT_TIERS = [
 ];
 const FLAT_OVER = 2500; // > 10 lb → $25.00
 
+// Padding added to every charged shipping rate so we stay safe if the real
+// label ends up costing a bit more than the quote.
+const RATE_BUFFER_CENTS = 100; // $1.00
+
 export function hasShippo(env) {
   return Boolean(env.SHIPPO_API_KEY);
 }
@@ -94,11 +98,23 @@ export async function quoteShipping(env, { cart, address, test = false }) {
   if (hasShippo(env) && address && (address.postal_code || address.zip)) {
     try {
       const rates = await shippoRates(env, { to: address, weightOz });
-      if (rates && rates.length) { options.push(...rates); source = "shippo"; }
+      if (rates && rates.length) {
+        // One customer-facing "Ground shipping" option from the cheapest live
+        // rate, padded by $1 so we never lose money if the real label costs a
+        // little more. We don't surface the carrier (USPS/UPS) to the customer.
+        const cheapest = rates[0];
+        options.push({
+          id: "ground",
+          label: "Ground shipping",
+          amount_cents: cheapest.amount_cents + RATE_BUFFER_CENTS,
+          days: cheapest.days || null
+        });
+        source = "shippo";
+      }
     } catch (e) { console.warn("Shippo quote failed, using flat tier:", e.message); }
   }
   if (source !== "shippo") {
-    options.push({ id: "flat", label: "Standard shipping", amount_cents: flatTier(weightOz) });
+    options.push({ id: "flat", label: "Ground shipping", amount_cents: flatTier(weightOz) + RATE_BUFFER_CENTS });
   }
   return { source, weight_oz: weightOz, subtotal_cents: subtotal, options };
 }

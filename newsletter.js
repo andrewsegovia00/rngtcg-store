@@ -60,13 +60,9 @@
         markSeen();
         form.style.display = "none";
         wrap.querySelector(".news-pop__skip").style.display = "none";
-        if (data.code) {
-          msg.innerHTML = `Here's your ${data.percent_off || 10}% code:<br><strong class="news-pop__code">${data.code}</strong><br>Use it at checkout.`;
-        } else if (data.emailed) {
-          msg.innerHTML = `Check your email for your ${data.percent_off || 10}% off code. 🎉`;
-        } else {
-          msg.textContent = "You're on the list! 🎉";
-        }
+        // Never print the code on screen (it would let anyone farm codes with
+        // throwaway emails). It's only ever delivered by email.
+        msg.innerHTML = `Check your email for your ${data.percent_off || 10}% off code. 🎉`;
         msg.classList.add("is-ok");
       } catch (err) {
         msg.textContent = err.message;

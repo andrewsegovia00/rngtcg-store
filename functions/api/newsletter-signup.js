@@ -51,8 +51,10 @@ export async function onRequestPost({ request, env }) {
       catch (e) { console.warn("welcome email failed", e.message); }
     }
 
-    // Only reveal the code in the response when we couldn't email it.
-    return json({ ok: true, subscribed: true, percent_off: WELCOME_PERCENT, emailed, code: emailed ? undefined : coupon.code });
+    // Never return the raw code to the browser — otherwise anyone could farm
+    // codes with throwaway emails. It's delivered by email only (and visible to
+    // the admin in the subscriber list). `emailed` tells the UI what to say.
+    return json({ ok: true, subscribed: true, percent_off: WELCOME_PERCENT, emailed });
   } catch (error) {
     return json({ error: error.message || "Could not sign up.", details: error.details || null }, error.status || 500);
   }

@@ -291,7 +291,11 @@ function addToCart(id, format="pack", qty=1, fromEl){
   const cap = availableFor(p, format);          // check the format being added, not the card default
   if (cap <= 0) return;
   const idx = cart.findIndex(l => l.productId===id && l.format===format);
-  if (idx>=0) cart[idx].quantity = Math.min(cart[idx].quantity + qty, cap);
+  const current = idx >= 0 ? cart[idx].quantity : 0;
+  // Already holding all available stock — do nothing (no count change, and no
+  // misleading fly-to-chest animation).
+  if (current >= cap) return;
+  if (idx>=0) cart[idx].quantity = Math.min(current + qty, cap);
   else cart.push({productId:id, format, quantity:Math.min(Math.max(1, qty), cap)});
   saveCart();
   pulseBag();

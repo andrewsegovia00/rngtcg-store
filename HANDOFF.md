@@ -195,6 +195,22 @@ The admin is now **multiple pages with a shared top nav** (Command center · Mar
 - Spacing fixes: more generous `.panel__head` / `.email-editor` padding; the email-template **Save changes** button now uses a real `.primary` style.
 - **Newsletter dedup UX:** the popup now keeps the form open and says "that email's already signed up — try a different one" instead of silently accepting a repeat (backend already dedups one welcome code per email).
 
+### Bug fixes & polish (this session)
+- **Orders are now their own page** (`orders.html`/`orders.js`), in the nav. Command center keeps metrics + inventory only. Orders page adds a **date-range filter** (default **This month**; Last 30/90 days; All time) on top of the existing status filter — older orders are out of view by default. `admin-overview` order limit raised 60 → 500.
+- **Delete products:** `POST /api/admin-delete-product` + a Delete button per product. Hard-deletes the product + variants **only if it has no order history** (FK safety); otherwise refuses and tells you to hide it. Hiding (active=false) remains the path for sold products.
+- **Welcome-code farming closed:** the signup popup no longer prints the code on screen and `/api/newsletter-signup` no longer returns it — codes are email-only (admin can still see them in the subscriber list). (The 4 "duplicate" subscribers were actually distinct typo'd emails, so each correctly got its own code; true duplicates are deduped.)
+- **Shipping copy:** customer now sees a single **"Ground shipping $X"** (no USPS/UPS carrier name), and every charged rate is padded **+$1.00** (`RATE_BUFFER_CENTS`) so we don't lose money if the real label costs more.
+- **Shop "+" over-add bug:** clicking + on an item already at its stock cap no longer fires the fly-to-chest animation (it now early-returns when `current >= cap`).
+- **Shop header:** fixed the display-font descender (the "g" in "Magic: The Gathering") overlapping the subtitle (`line-height` + padding), and the filter chips now stay right-aligned even with a long title (`.filters{margin-left:auto}` + `min-width:0` headings).
+- **Admin spacing:** coupons page `.marketing-grid` and the bulk bar got proper padding; the bulk bar's `hidden` attribute now actually hides it (`.bulk-bar[hidden]{display:none}` — `display:flex` was overriding it).
+
+### Order statuses — what they mean
+- **pending** = a checkout was started and stock is **reserved** but not paid yet (a hold). It auto-expires after 30 min (or you can **Release hold** to free the stock immediately).
+- **paid** = payment captured. These are what you fulfill (tag Sealed/Open-live, mark ready, ship).
+- **released** = a pending hold that was let go (manually or by you) — stock returned, no sale.
+- **expired** = a pending hold that timed out — stock returned automatically.
+Released/expired are dead holds kept for the record; with the new date filter they drop out of view after the current month.
+
 ### ⚠️ TODO — real admin auth (OAuth login, owner-only)
 The admin pages are currently guarded only by a pasted `ADMIN_TOKEN` (the API still verifies it on every call, so data is safe — but an unauthenticated visitor still sees the admin **shell/UI**). **Build a proper login gate:** an OAuth sign-in (e.g. Google, restricted to the owner's single email / an allowlist) in front of `admin.html`, `marketing.html`, `coupons.html`, `email-template.html` so anyone hitting those URLs without a session is **redirected to a login page and sees nothing**. Likely a Cloudflare Access policy (zero code, fastest) or a small OAuth flow + signed session cookie checked by a Pages middleware (`functions/_middleware.js`). Single-user / owner-only.
 

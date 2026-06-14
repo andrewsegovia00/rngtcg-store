@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="robots" content="noindex" />
+<meta name="description" content="R&G TCG orders." />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>R&G TCG — Orders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <header class="admin-header">
+    <a class="brand" href="admin.html" aria-label="Back to admin">
+      <span class="brand__mark">R&G</span>
+      <span>
+        <span class="brand__name">R&G TCG</span>
+        <span class="brand__sub">Orders</span>
+      </span>
+    </a>
+    <nav class="admin-nav">
+      <a href="admin.html">Command center</a>
+      <a href="orders.html" aria-current="page">Orders</a>
+      <a href="marketing.html">Marketing</a>
+      <a href="coupons.html">Coupons</a>
+      <a href="email-template.html">Email template</a>
+    </nav>
+    <div class="admin-actions">
+      <a class="link-pill" href="index.html">Shop</a>
+      <button class="link-pill" id="refreshBtn">Refresh</button>
+      <button class="link-pill danger" id="lockBtn">Lock</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero-admin">
+      <div>
+        <p class="eyebrow">Fulfillment</p>
+        <h1>Orders</h1>
+        <p>Open-live, ready-to-ship, and shipped orders. By default you're looking at <strong>this month</strong> — switch the date range to dig into older orders. Export paid + ready orders to PirateShip.</p>
+      </div>
+      <form class="token-card" id="tokenForm">
+        <label for="adminToken">Admin token</label>
+        <div class="token-row">
+          <input id="adminToken" type="password" autocomplete="off" placeholder="Paste ADMIN_TOKEN" />
+          <button type="submit">Unlock</button>
+        </div>
+        <p>Stored in this browser session only. Server still checks the token on every call.</p>
+      </form>
+    </section>
+
+    <section class="status" id="status" hidden></section>
+
+    <section class="panel">
+      <div class="panel__head">
+        <div>
+          <p class="eyebrow">Orders</p>
+          <h2>Checkout orders</h2>
+        </div>
+        <div class="filter-row">
+          <button class="link-pill" id="exportBtn" title="Download paid, ready-to-ship, not-yet-shipped orders as a PirateShip CSV">Export PirateShip CSV</button>
+          <select id="dateRange" title="Date range">
+            <option value="month">This month</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="all">All time</option>
+          </select>
+          <select id="orderFilter">
+            <option value="to_open">To open · live</option>
+            <option value="ready">Ready to ship</option>
+            <option value="shipped">Shipped</option>
+            <option value="all_active">All unshipped</option>
+            <option value="pending">Pending holds</option>
+            <option value="all">All orders</option>
+            <option value="released">Released</option>
+            <option value="expired">Expired</option>
+          </select>
+        </div>
+      </div>
+      <div class="bulk-bar" id="bulkBar" hidden>
+        <span id="bulkCount">0 selected</span>
+        <button class="small-btn" id="bulkReady">Mark ready to ship</button>
+        <button class="small-btn" id="bulkShipped">Mark shipped</button>
+        <button class="small-btn ghost" id="bulkSealed">Tag sealed</button>
+        <button class="small-btn ghost" id="bulkOpen">Tag open live</button>
+        <button class="small-btn ghost" id="bulkBundle">Bundle</button>
+        <button class="small-btn ghost" id="bulkUnbundle">Unbundle</button>
+        <button class="small-btn ghost" id="bulkClear">Clear</button>
+      </div>
+      <div class="orders" id="orders"></div>
+    </section>
+  </main>
+
+  <script src="orders.js"></script>
+</body>
+</html>

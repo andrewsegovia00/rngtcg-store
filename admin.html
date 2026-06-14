@@ -23,6 +23,7 @@
     </a>
     <nav class="admin-nav">
       <a href="admin.html" aria-current="page">Command center</a>
+      <a href="orders.html">Orders</a>
       <a href="marketing.html">Marketing</a>
       <a href="coupons.html">Coupons</a>
       <a href="email-template.html">Email template</a>
@@ -39,7 +40,7 @@
       <div>
         <p class="eyebrow"> Admin </p>
         <h1>Command center</h1>
-        <p>View recent orders, watch reserved inventory, update stock, toggle active products, and release abandoned holds without opening Supabase.</p>
+        <p>Watch reserved inventory, update stock, toggle or delete products, and keep an eye on store metrics. Orders live on the <a href="orders.html">Orders</a> page.</p>
       </div>
       <form class="token-card" id="tokenForm">
         <label for="adminToken">Admin token</label>
@@ -92,38 +93,6 @@
       </div>
     </section>
 
-    <section class="panel">
-      <div class="panel__head">
-        <div>
-          <p class="eyebrow">Orders</p>
-          <h2>Recent checkout orders</h2>
-        </div>
-        <div class="filter-row">
-          <button class="link-pill" id="exportBtn" title="Download paid, not-yet-shipped orders as a PirateShip CSV">Export PirateShip CSV</button>
-          <select id="orderFilter">
-            <option value="to_open">To open · live</option>
-            <option value="ready">Ready to ship</option>
-            <option value="shipped">Shipped</option>
-            <option value="all_active">All unshipped</option>
-            <option value="pending">Pending holds</option>
-            <option value="all">All orders</option>
-            <option value="released">Released</option>
-            <option value="expired">Expired</option>
-          </select>
-        </div>
-      </div>
-      <div class="bulk-bar" id="bulkBar" hidden>
-        <span id="bulkCount">0 selected</span>
-        <button class="small-btn" id="bulkReady">Mark ready to ship</button>
-        <button class="small-btn" id="bulkShipped">Mark shipped</button>
-        <button class="small-btn ghost" id="bulkSealed">Tag sealed</button>
-        <button class="small-btn ghost" id="bulkOpen">Tag open live</button>
-        <button class="small-btn ghost" id="bulkBundle">Bundle</button>
-        <button class="small-btn ghost" id="bulkUnbundle">Unbundle</button>
-        <button class="small-btn ghost" id="bulkClear">Clear</button>
-      </div>
-      <div class="orders" id="orders"></div>
-    </section>
   </main>
 
   <dialog class="dialog" id="variantDialog">
