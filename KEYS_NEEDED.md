@@ -133,7 +133,14 @@ GOOGLE_MAPS_API_KEY=AIza...   # browser-safe key, served via /api/public-config
 Powers Google Places autocomplete on the checkout shipping form (mimics Stripe's
 address experience). This key is **public by design** — lock it down in Google
 Cloud Console: restrict to your site's HTTP referrers and enable only the **Maps
-JavaScript API** + **Places API**. If unset, checkout uses plain manual entry.
+JavaScript API** + **Places API (New)**. If unset, checkout uses plain manual entry.
+
+**Cap the cost (stay in the free tier):** Cloud Console → APIs & Services → the
+API → *Quotas & System Limits* → set a hard **per-day request limit** on Maps
+JavaScript API and Places API (New); and Billing → *Budgets & alerts* → add a
+budget + alert. `PlaceAutocompleteElement` bundles keystrokes into one billed
+session token and the checkout debounces input, but the quota cap is the only
+hard guarantee against overage.
 
 **Still later:**
 

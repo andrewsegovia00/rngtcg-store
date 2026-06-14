@@ -48,12 +48,19 @@
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || "Something went wrong.");
+        // Already signed up with this email — keep the form open so they can
+        // try a different address (one welcome code per email).
+        if (data.already) {
+          msg.textContent = "That email's already signed up — try a different one to grab a code.";
+          msg.classList.remove("is-ok"); msg.classList.add("is-err");
+          btn.disabled = false; btn.textContent = "Get my code";
+          form.email.focus(); form.email.select();
+          return;
+        }
         markSeen();
         form.style.display = "none";
         wrap.querySelector(".news-pop__skip").style.display = "none";
-        if (data.already) {
-          msg.innerHTML = `You're already on the list — check your inbox for your code. 🎉`;
-        } else if (data.code) {
+        if (data.code) {
           msg.innerHTML = `Here's your ${data.percent_off || 10}% code:<br><strong class="news-pop__code">${data.code}</strong><br>Use it at checkout.`;
         } else if (data.emailed) {
           msg.innerHTML = `Check your email for your ${data.percent_off || 10}% off code. 🎉`;

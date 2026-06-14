@@ -6,7 +6,6 @@
    ============================================================================ */
 const TOKEN_KEY = "rg_admin_token";
 let state = { products: [], inventory: [], orders: [], totals: null };
-let marketing = { coupons: [], newsletter_count: 0, order_recipient_count: 0, email_stats: {} };
 let editingVariant = null;
 
 const $ = (s, root = document) => root.querySelector(s);
@@ -51,12 +50,6 @@ async function load() {
     const data = await api("/api/admin-overview");
     state = data;
     renderAll();
-    try {
-      marketing = await api("/api/admin-marketing");
-      renderMarketing();
-    } catch (error) {
-      console.warn("Marketing overview failed", error.message);
-    }
     showStatus("Dashboard refreshed.", "ok");
   } catch (error) {
     showStatus(error.message, "err");
@@ -372,28 +365,6 @@ async function exportOrders() {
   } catch (error) {
     showStatus(error.message, "err");
   }
-}
-
-function pct(part, whole) {
-  if (!whole) return "—";
-  return `${Math.round((Number(part || 0) / whole) * 100)}%`;
-}
-
-function renderMarketing() {
-  const s = marketing.email_stats || {};
-  const sent = Number(s.sent || s.delivered || 0) || (Number(s.delivered || 0) + Number(s.bounced || 0));
-  const delivered = Number(s.delivered || 0);
-  const opened = Number(s.opened || 0);
-  const bounced = Number(s.bounced || 0);
-  const denom = sent || delivered || 0;
-  const metrics = [
-    ["Newsletter subs", Number(marketing.newsletter_count || 0).toLocaleString()],
-    ["Order recipients", Number(marketing.order_recipient_count || 0).toLocaleString()],
-    ["Delivery rate", denom ? pct(delivered, denom) : "—"],
-    ["Open rate", delivered ? pct(opened, delivered) : "—"],
-    ["Bounce rate", denom ? pct(bounced, denom) : "—"]
-  ];
-  $("#marketingMetrics").innerHTML = metrics.map(([label, value]) => `<article class="metric"><span>${label}</span><strong>${value}</strong></article>`).join("");
 }
 
 $("#tokenForm").addEventListener("submit", event => {

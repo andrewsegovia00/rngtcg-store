@@ -187,6 +187,20 @@ The order-confirmation + welcome emails are now admin-editable. Migration `phase
 
 Outstanding config: **Resend webhook** for email analytics — set `RESEND_WEBHOOK_SECRET` + point a Resend webhook at `https://YOUR-DOMAIN/api/resend-webhook` once deployed (needs a public URL). Swap `RESEND_FROM_EMAIL` to a verified domain when you have one.
 
+### Admin pages restructure ✅ DONE (this session)
+The admin is now **multiple pages with a shared top nav** (Command center · Marketing · Coupons · Email template), no longer one long command-center scroll.
+- **`admin.html`** = Command center (metrics + inventory + orders only; Marketing panel removed).
+- **`marketing.html`/`marketing.js`** (new) = lists & email-health metrics **+ a viewable newsletter subscriber table with a Download CSV button** (client-side CSV from `GET /api/admin-subscribers`).
+- **`coupons.html`** + **`email-template.html`** unchanged in purpose; all four share the `.admin-nav` (active link via `aria-current`) and the same sessionStorage admin token.
+- Spacing fixes: more generous `.panel__head` / `.email-editor` padding; the email-template **Save changes** button now uses a real `.primary` style.
+- **Newsletter dedup UX:** the popup now keeps the form open and says "that email's already signed up — try a different one" instead of silently accepting a repeat (backend already dedups one welcome code per email).
+
+### ⚠️ TODO — real admin auth (OAuth login, owner-only)
+The admin pages are currently guarded only by a pasted `ADMIN_TOKEN` (the API still verifies it on every call, so data is safe — but an unauthenticated visitor still sees the admin **shell/UI**). **Build a proper login gate:** an OAuth sign-in (e.g. Google, restricted to the owner's single email / an allowlist) in front of `admin.html`, `marketing.html`, `coupons.html`, `email-template.html` so anyone hitting those URLs without a session is **redirected to a login page and sees nothing**. Likely a Cloudflare Access policy (zero code, fastest) or a small OAuth flow + signed session cookie checked by a Pages middleware (`functions/_middleware.js`). Single-user / owner-only.
+
+### Google Maps cost control (free tier)
+To avoid blowing past the free monthly credit on the checkout autocomplete: in **Google Cloud Console → APIs & Services → (each API) → Quotas & System Limits**, set a hard **per-day request cap** on *Maps JavaScript API* and *Places API (New)*; and in **Billing → Budgets & alerts**, add a budget + email alert. The new `PlaceAutocompleteElement` already bundles keystrokes into one billed session token, and `checkout.js` debounces input — but a quota cap is the only hard guarantee you won't be charged. Keep the key **referrer-restricted** to your domain so others can't use it.
+
 (Interim test path: Stripe is in **test mode**, so a full purchase with `test-01` + card `4242 4242 4242 4242` costs $0 real money even with the $5 shipping.)
 
 ---

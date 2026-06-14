@@ -147,7 +147,7 @@ button { cursor: pointer; }
 @media (max-width: 680px) { .admin-header, .wrap { padding-inline: var(--layout-gutter-sm); } .metric-grid { grid-template-columns: 1fr; } .admin-header { height: auto; padding-block: var(--space-3); flex-direction: column; align-items: stretch; } .admin-actions { justify-content: space-between; } }
 
 /* Email template editor (Phase 8) */
-.email-editor { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-5); align-items: start; }
+.email-editor { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-6); align-items: start; padding: var(--space-6); }
 .email-fields { display: flex; flex-direction: column; gap: var(--space-4); }
 .email-group { border: var(--outline); border-radius: var(--radius-md); background: var(--color-surface-alt); padding: var(--space-4) var(--space-5) var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
 .email-group legend { font: var(--weight-bold) var(--text-label) var(--font-mono); text-transform: uppercase; letter-spacing: .8px; color: var(--color-primary-strong); padding: 0 var(--space-2); }
@@ -165,3 +165,31 @@ button { cursor: pointer; }
 #previewFrame { width: 100%; height: 680px; border: var(--outline); border-radius: var(--radius-md); background: #f7f5fb; box-shadow: var(--shadow-offset-sm); }
 @media (max-width: 960px) { .email-editor { grid-template-columns: 1fr; } .email-preview { position: static; } #previewFrame { height: 520px; } }
 .panel__head-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+/* Admin nav (shared across command center / marketing / coupons / email template) */
+.admin-header { flex-wrap: wrap; height: auto; min-height: 72px; row-gap: var(--space-2); padding-block: var(--space-3); }
+.admin-nav { display: flex; gap: var(--space-1, 4px); flex-wrap: wrap; align-items: center; margin-inline: auto; }
+.admin-nav a {
+  text-decoration: none; color: var(--color-text-muted); background: transparent; border: 1.5px solid transparent;
+  border-radius: var(--radius-pill); padding: var(--space-2) var(--space-4);
+  font: var(--weight-bold) var(--text-label) var(--font-mono); letter-spacing: var(--tracking-wide); text-transform: uppercase;
+}
+.admin-nav a:hover { color: var(--color-ink); background: var(--color-surface-alt); }
+.admin-nav a[aria-current="page"] { color: #fff; background: var(--color-primary); border-color: var(--color-ink); box-shadow: var(--shadow-offset-sm); }
+
+/* Generic primary button (e.g. Email template "Save changes") */
+.primary {
+  cursor: pointer; border: var(--outline); border-radius: var(--radius-pill);
+  background: var(--color-primary); color: #fff; padding: var(--space-3) var(--space-5);
+  font: var(--weight-bold) var(--text-label) var(--font-mono); letter-spacing: var(--tracking-wide); text-transform: uppercase;
+  box-shadow: var(--shadow-offset-sm);
+}
+.primary:hover { transform: translate(-1px,-1px); box-shadow: var(--shadow-offset-md); background: var(--color-primary-strong); }
+
+/* Subscriber list count chip */
+.subs-count { font: var(--weight-bold) var(--text-label) var(--font-mono); letter-spacing: .5px; text-transform: uppercase; color: var(--color-text-muted); align-self: center; }
+
+/* A touch more breathing room on the panel head */
+.panel__head { padding: var(--space-6); }
+
+@media (max-width: 780px) { .admin-nav { width: 100%; order: 3; overflow-x: auto; justify-content: flex-start; flex-wrap: nowrap; } }
