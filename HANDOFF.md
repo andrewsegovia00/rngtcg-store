@@ -124,8 +124,15 @@ The admin dashboard (`admin.html` / `admin.js`, guarded by `ADMIN_TOKEN`) alread
 
 **CSV columns for bulk upload** — `products`: `id, category, name, set_code, language, badge, tone, symbol, image_label, sale_percent, active`. `product_variants`: `sku (=<id>:pack / <id>:box), product_id, format (pack|box), price_cents, stock_on_hand, active`. (Leave `stock_reserved` / `stock_sold` to the system.)
 
-### Known limitation — product images
-There is **no image support** yet: cards render as CSS tiles from `tone` (color) + `symbol` (glyph) + `set_code`. Real photos need: an `image_url` column on `products`, `<img>` rendering in `app.js`, and hosting (Supabase Storage, 1GB free, is the natural fit).
+### Real inventory imported + product images ✅ DONE
+The demo catalog was replaced with the real inventory (CSV import). Demo products with order history are kept but `active=false`; the rest were deleted; `test-01` kept.
+- **22 real products / 34 variants** across Pokémon (JP + EN Phantasmal Flames), Weiss Schwarz (Hololive), Yu-Gi-Oh QC, One Piece — all JP except Phantasmal Flames. Sell Price → `price_cents`; Original Price → new `product_variants.cost_cents` (margins). Quantities → `stock_on_hand`.
+- **New `weiss` category** added to `CATEGORIES` (both `catalog.js` + `functions/_lib/catalog.js`) + `--color-cat-weiss` token.
+- **Image support added.** New `products.image_url` / `image_url_pack`; photos live as static assets in `assets/products/` (served by Pages), referenced as `/assets/products/*.png`. `app.js` renders `<img class="card__photo">` (box art ↔ pack art by format) with **automatic fallback to the CSS tile** when there's no photo or it 404s. `/api/catalog` returns `image`/`imagePack`.
+- **Single-format products** (pack-only or box-only — e.g. Lost Abyss, OP-05, EB01 loose) now hide the unavailable format toggle and default to the format that exists (new `hasFormat`/`defaultFormat` in `app.js`).
+- **Verified** on local wrangler: catalog endpoint, shop grid (photos + tile fallback), per-category views, single-format toggles, live stock labels, cart.
+
+**Excluded for now** (per "box/pack only" decision): Phantasmal Flames **Blisters (qty 20)** and **3-Pack (qty 1)** — the schema only allows `pack`/`box`. Re-add once formats are extended. Products with **no photo** (tiles): QC Edition red, OP-05/OP-09/OP-01, Phantasmal Flames. The zip also contains art for sets not in the current CSV (EB03/04, OP10/12/14, Mega Dream, Nihil Zero, PRB02, QC Rarity) — available when those come in stock.
 
 ---
 

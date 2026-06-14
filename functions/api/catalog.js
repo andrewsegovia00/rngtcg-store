@@ -36,7 +36,9 @@ function shapeProduct(p, variantsByProduct) {
     badge: p.badge || null,
     tone: p.tone,
     symbol: p.symbol,
-    imageLabel: p.image_label || p.name
+    imageLabel: p.image_label || p.name,
+    image: p.image_url || null,
+    imagePack: p.image_url_pack || null
   };
 }
 
@@ -47,7 +49,7 @@ export async function onRequestGet({ env }) {
 
   try {
     const [products, variants] = await Promise.all([
-      supabaseFetch(env, "products?active=eq.true&select=id,category,name,set_code,language,badge,tone,symbol,image_label,sale_percent&order=created_at.asc"),
+      supabaseFetch(env, "products?active=eq.true&select=id,category,name,set_code,language,badge,tone,symbol,image_label,image_url,image_url_pack,sale_percent&order=created_at.asc"),
       supabaseFetch(env, "product_variants?active=eq.true&select=product_id,format,price_cents,stock_on_hand")
     ]);
 

@@ -15,12 +15,19 @@ const FREE_SHIPPING_THRESHOLD = 200;
 const ADD_BUTTON_STYLE = "plus";
 
 const $ = s => document.querySelector(s);
-function availableFor(p, fmt = cardFormat[p.id] || "pack"){
+function availableFor(p, fmt = cardFormat[p.id] || defaultFormat(p)){
   const live = inventoryOverlay[p.id]?.[fmt];
   return Number.isFinite(live) ? live : p.stock;
 }
 const stockClass = p => availableFor(p) === 0 ? "out" : availableFor(p) <= 5 ? "low" : "in";
 const stockLabel = p => availableFor(p) === 0 ? "Sold out" : availableFor(p) <= 5 ? `Only ${availableFor(p)} left` : `${availableFor(p)} in stock`;
+// Product photo for the current format (box art ↔ pack art), with fallback to
+// whichever image exists. Returns null when there's no photo (CSS tile shows).
+const artFor = (p, fmt) => (fmt === "box" ? (p.image || p.imagePack) : (p.imagePack || p.image)) || null;
+// Some products sell in only one format (pack-only or box-only). Treat a format
+// as available only when it has a price; default to whichever format exists.
+const hasFormat = (p, fmt) => (fmt === "box" ? p.boxPrice : p.packPrice) != null;
+const defaultFormat = p => (hasFormat(p, "pack") ? "pack" : "box");
 
 function loadCart(){
   try {
@@ -99,7 +106,7 @@ function renderGrid(){
   }
 
   grid.innerHTML = list.map(p => {
-    const fmt = cardFormat[p.id] || "pack";
+    const fmt = cardFormat[p.id] || defaultFormat(p);
     const out = availableFor(p, fmt) === 0;
     const price = unitPrice(p, fmt);
     const base = fmt === "box" ? p.boxPrice : p.packPrice;
@@ -111,16 +118,17 @@ function renderGrid(){
         ${p.badge ? `<span class="card__badge is-${String(p.badge).toLowerCase()}">${p.badge}</span>` : ""}
         ${p.sale ? `<span class="card__sale">-${p.sale}%</span>` : ""}
         ${out ? `<span class="sold-stamp">Sold<br>out</span>` : ""}
-        <div class="pack-mock">
+        ${artFor(p, fmt) ? `<img class="card__photo" src="${artFor(p, fmt)}" alt="${p.name}" loading="lazy" draggable="false" onerror="this.remove();this.closest('.card__art').querySelector('.pack-mock').hidden=false">` : ""}
+        <div class="pack-mock"${artFor(p, fmt) ? " hidden" : ""}>
           <div class="pack-mock__top"></div>
           <div class="pack-mock__label">${p.set}</div>
           <div class="pack-mock__symbol">${p.symbol}</div>
           <div class="pack-mock__foot">Booster · ${fmt === "box" ? "box" : "10 cards"}</div>
         </div>
-        <div class="seg" data-id="${p.id}">
+        ${hasFormat(p,'pack') && hasFormat(p,'box') ? `<div class="seg" data-id="${p.id}">
           <button class="${fmt==='pack'?'on':''}" data-fmt="pack">Pack</button>
           <button class="${fmt==='box'?'on':''}" data-fmt="box">Box</button>
-        </div>
+        </div>` : ""}
         ${!out ? `<span class="card__grab">drag</span>` : ""}
       </div>
       <div class="card__body">
@@ -144,11 +152,11 @@ function renderGrid(){
   grid.querySelectorAll(".seg button").forEach(b =>
     b.onclick = e => { e.stopPropagation(); cardFormat[b.parentElement.dataset.id] = b.dataset.fmt; renderGrid(); });
   grid.querySelectorAll("[data-add]").forEach(b =>
-    b.onclick = () => { if (b.disabled) return; addToCart(b.dataset.add, cardFormat[b.dataset.add]||"pack", 1, b); });
+    b.onclick = () => { if (b.disabled) return; addToCart(b.dataset.add, cardFormat[b.dataset.add]||defaultFormat(productById(b.dataset.add)), 1, b); });
   grid.querySelectorAll(".card__art[draggable='true']").forEach(art => {
     art.addEventListener("dragstart", e => {
       const id = art.dataset.id;
-      e.dataTransfer.setData("text/plain", JSON.stringify({productId:id, format:cardFormat[id]||"pack", quantity:1}));
+      e.dataTransfer.setData("text/plain", JSON.stringify({productId:id, format:cardFormat[id]||defaultFormat(productById(id)), quantity:1}));
       e.dataTransfer.effectAllowed = "copy";
       art.closest(".card").classList.add("is-dragging");
     });
@@ -336,7 +344,7 @@ bagEl.addEventListener("drop", e => {
 let modalState = null;
 function openModal(id){
   const p = productById(id); if(!p || availableFor(p) === 0) return;
-  modalState = { id, format: cardFormat[id]||"pack", qty:1 };
+  modalState = { id, format: cardFormat[id]||defaultFormat(productById(id)), qty:1 };
   drawModal(); $("#overlay").classList.add("open");
 }
 function drawModal(){
@@ -346,7 +354,8 @@ function drawModal(){
   m.innerHTML = `
     <button class="modal__close" id="mClose">×</button>
     <div class="modal__art" style="--tone:${p.tone}">
-      <div class="pack-mock pack-mock--modal"><div class="pack-mock__top"></div><div class="pack-mock__label">${p.set}</div><div class="pack-mock__symbol">${p.symbol}</div><div class="pack-mock__foot">${languageShort(p.language)} · ${categoryShort(p.category)}</div></div>
+      ${artFor(p, modalState.format) ? `<img class="card__photo" src="${artFor(p, modalState.format)}" alt="${p.name}" draggable="false" onerror="this.remove();this.closest('.modal__art').querySelector('.pack-mock').hidden=false">` : ""}
+      <div class="pack-mock pack-mock--modal"${artFor(p, modalState.format) ? " hidden" : ""}><div class="pack-mock__top"></div><div class="pack-mock__label">${p.set}</div><div class="pack-mock__symbol">${p.symbol}</div><div class="pack-mock__foot">${languageShort(p.language)} · ${categoryShort(p.category)}</div></div>
     </div>
     <div class="modal__body">
       <div class="modal__set">${categoryById(p.category).label} · ${languageLabel(p.language)} · ${p.set}</div>
@@ -354,8 +363,8 @@ function drawModal(){
       <div class="modal__row">
         <span class="modal__lab">Format</span>
         <div class="seg">
-          <button class="${modalState.format==='pack'?'on':''}" data-mfmt="pack">Pack · ${formatMoney(unitPrice(p,'pack'))}</button>
-          <button class="${modalState.format==='box'?'on':''}" data-mfmt="box">Box · ${formatMoney(unitPrice(p,'box'))}</button>
+          ${hasFormat(p,'pack') ? `<button class="${modalState.format==='pack'?'on':''}" data-mfmt="pack">Pack · ${formatMoney(unitPrice(p,'pack'))}</button>` : ""}
+          ${hasFormat(p,'box') ? `<button class="${modalState.format==='box'?'on':''}" data-mfmt="box">Box · ${formatMoney(unitPrice(p,'box'))}</button>` : ""}
         </div>
       </div>
       <div class="modal__row">
