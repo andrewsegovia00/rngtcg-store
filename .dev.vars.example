@@ -28,3 +28,12 @@ RESEND_WEBHOOK_SECRET=whsec_replace_me
 # Phase 6 — Shippo shipping rates. Test key works for quoting; request a live
 # key for production labels. Put the real key in .dev.vars, never here.
 SHIPPO_API_KEY=shippo_test_replace_me
+
+# Ship-from address used to quote rates (your warehouse / fulfillment address).
+SHIP_FROM_NAME=R&G TCG
+SHIP_FROM_STREET1=123 Example St
+SHIP_FROM_CITY=Austin
+SHIP_FROM_STATE=TX
+SHIP_FROM_ZIP=78701
+SHIP_FROM_COUNTRY=US
+SHIP_FROM_PHONE=5125550100

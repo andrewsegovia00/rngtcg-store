@@ -1,5 +1,16 @@
 import { productById, unitPrice, toCents, categoryShort, languageShort } from "../_lib/catalog.js";
 import { hasSupabase, supabaseRpc, supabaseFetch, maybeReleaseReservation } from "../_lib/supabase.js";
+import { quoteShipping } from "../_lib/shipping.js";
+
+function cleanAddress(a = {}) {
+  const s = v => (typeof v === "string" ? v.trim().slice(0, 120) : "");
+  return {
+    name: s(a.name), line1: s(a.line1), line2: s(a.line2), city: s(a.city),
+    state: s(a.state).toUpperCase().slice(0, 2),
+    postal_code: s(a.postal_code || a.zip), country: (s(a.country) || "US").toUpperCase().slice(0, 2),
+    phone: s(a.phone)
+  };
+}
 
 const json = (body, status = 200) => new Response(JSON.stringify(body, null, 2), {
   status,
@@ -49,17 +60,6 @@ function normalizeCart(cart) {
 
 function subtotalCents(lines) {
   return lines.reduce((sum, line) => sum + toCents(unitPrice(line.product, line.format)) * line.quantity, 0);
-}
-
-function addShippingOption(params, idx, name, amountCents, minDays, maxDays) {
-  append(params, `shipping_options[${idx}][shipping_rate_data][type]`, "fixed_amount");
-  append(params, `shipping_options[${idx}][shipping_rate_data][fixed_amount][amount]`, amountCents);
-  append(params, `shipping_options[${idx}][shipping_rate_data][fixed_amount][currency]`, "usd");
-  append(params, `shipping_options[${idx}][shipping_rate_data][display_name]`, name);
-  append(params, `shipping_options[${idx}][shipping_rate_data][delivery_estimate][minimum][unit]`, "business_day");
-  append(params, `shipping_options[${idx}][shipping_rate_data][delivery_estimate][minimum][value]`, minDays);
-  append(params, `shipping_options[${idx}][shipping_rate_data][delivery_estimate][maximum][unit]`, "business_day");
-  append(params, `shipping_options[${idx}][shipping_rate_data][delivery_estimate][maximum][value]`, maxDays);
 }
 
 async function createReservationIfConfigured(env, payload) {
@@ -123,23 +123,6 @@ export async function onRequestPost(context) {
         details: error.details || null
       }, error.status || 400);
     }
-    // Tag the freshly-created order: a username means it was bought during a
-    // live → "open_live" (must be opened on stream before shipping). No username
-    // → "sealed" → ready to ship as-is. (best-effort)
-    if (reservation?.order_id) {
-      const orderTag = tiktok ? "open_live" : "sealed";
-      try {
-        await supabaseFetch(env, `/checkout_orders?id=eq.${encodeURIComponent(reservation.order_id)}`, {
-          method: "PATCH",
-          headers: { prefer: "return=minimal" },
-          body: JSON.stringify({
-            tiktok_username: tiktok || null,
-            order_tag: orderTag,
-            ready_to_ship: orderTag === "sealed"
-          })
-        });
-      } catch (e) { console.warn("Could not tag order", e.message); }
-    }
     stripeLines = (reservation?.lines || []).map(l => ({
       name: `${l.title} — ${l.format === "box" ? "Booster Box" : "Booster Pack"}`,
       description: `${categoryShort(l.category)} · ${languageShort(l.language)} · ${l.set_code}`,
@@ -173,22 +156,59 @@ export async function onRequestPost(context) {
     return json({ error: "Your chest is empty." }, 400);
   }
 
-  const origin = baseUrl(request, env);
-  const params = new URLSearchParams();
-  const freeStandard = subtotal >= 20000;
-  const selectedShipping = payload.shipping === "express" ? "express" : "standard";
-  const shippingOrder = selectedShipping === "express" ? ["express", "standard"] : ["standard", "express"];
+  // We collect the shipping address ourselves and quote Shippo from it (Stripe
+  // hosted Checkout can't be prefilled with an address). Require a usable one.
+  const address = cleanAddress(payload.address);
+  if (!address.line1 || !address.city || !address.state || !address.postal_code) {
+    await maybeReleaseReservation(env, reservation?.order_id);
+    return json({ error: "A full US shipping address is required." }, 400);
+  }
+
+  // Re-quote server-side — never trust the client's shipping amount.
+  let shippingCents = 0, shippingLabel = "Shipping";
+  try {
+    const quote = await quoteShipping(env, { cart: payload.cart, address, test: Boolean(payload.test) });
+    const chosen = quote.options.find(o => o.id === payload.shipping_id)
+      || quote.options.slice().sort((a, b) => a.amount_cents - b.amount_cents)[0];
+    if (chosen) { shippingCents = chosen.amount_cents; shippingLabel = chosen.label; }
+  } catch (e) { console.warn("Shipping quote at checkout failed:", e.message); }
+
   const orderId = reservation?.order_id;
   const orderNumber = reservation?.order_number;
+  const totalCents = subtotal + shippingCents;
+
+  // Store address, tag, and the authoritative shipping/total on the order.
+  if (supabaseEnabled && orderId) {
+    const orderTag = tiktok ? "open_live" : "sealed";
+    try {
+      await supabaseFetch(env, `/checkout_orders?id=eq.${encodeURIComponent(orderId)}`, {
+        method: "PATCH",
+        headers: { prefer: "return=minimal" },
+        body: JSON.stringify({
+          tiktok_username: tiktok || null,
+          order_tag: orderTag,
+          ready_to_ship: orderTag === "sealed",
+          shipping_cents: shippingCents,
+          total_before_tax_cents: totalCents,
+          ship_name: address.name || null, ship_phone: address.phone || null,
+          ship_line1: address.line1 || null, ship_line2: address.line2 || null,
+          ship_city: address.city || null, ship_state: address.state || null,
+          ship_postal_code: address.postal_code || null, ship_country: address.country || "US"
+        })
+      });
+    } catch (e) { console.warn("Could not store address/shipping on order", e.message); }
+  }
+
+  const origin = baseUrl(request, env);
+  const params = new URLSearchParams();
 
   append(params, "mode", "payment");
   append(params, "success_url", `${origin}/success.html?session_id={CHECKOUT_SESSION_ID}`);
   append(params, "cancel_url", `${origin}/checkout.html?checkout=cancelled${orderId ? `&order_id=${encodeURIComponent(orderId)}` : ""}`);
   append(params, "allow_promotion_codes", "true");
   append(params, "billing_address_collection", "auto");
-  append(params, "phone_number_collection[enabled]", "true");
-  append(params, "shipping_address_collection[allowed_countries][0]", "US");
-  append(params, "metadata[source]", "rg-tcg-mvp-block-7");
+  // We already collected shipping on our page — Stripe just takes payment.
+  append(params, "metadata[source]", "rg-tcg-mvp");
   append(params, "metadata[item_count]", stripeLines.reduce((sum, line) => sum + line.quantity, 0));
   append(params, "metadata[subtotal_cents]", subtotal);
   if (orderId) append(params, "metadata[order_id]", orderId);
@@ -210,10 +230,14 @@ export async function onRequestPost(context) {
     append(params, `line_items[${i}][price_data][product_data][metadata][language]`, line.language);
   });
 
-  shippingOrder.forEach((choice, i) => {
-    if (choice === "standard") addShippingOption(params, i, freeStandard ? "Standard shipping — free" : "Standard shipping", freeStandard ? 0 : 500, 4, 6);
-    if (choice === "express") addShippingOption(params, i, "Express shipping", 1500, 1, 2);
-  });
+  // Shipping as its own line item (a fixed amount we computed from the address).
+  if (shippingCents > 0) {
+    const i = stripeLines.length;
+    append(params, `line_items[${i}][quantity]`, 1);
+    append(params, `line_items[${i}][price_data][currency]`, "usd");
+    append(params, `line_items[${i}][price_data][unit_amount]`, shippingCents);
+    append(params, `line_items[${i}][price_data][product_data][name]`, `Shipping — ${shippingLabel}`);
+  }
 
   const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",

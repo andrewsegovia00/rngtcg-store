@@ -30,6 +30,7 @@ create table if not exists public.product_variants (
   format text not null check (format in ('pack','box')),
   price_cents integer not null check (price_cents >= 0),
   cost_cents integer,
+  weight_oz numeric,
   stock_on_hand integer not null default 0 check (stock_on_hand >= 0),
   stock_reserved integer not null default 0 check (stock_reserved >= 0),
   stock_sold integer not null default 0 check (stock_sold >= 0),

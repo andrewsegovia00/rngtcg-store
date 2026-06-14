@@ -154,8 +154,23 @@ Follow-up fixes: the CSS tile was painting over photos (`.pack-mock{display:flex
 - **5 demo orders** seeded for dashboard testing (tagged `metadata.demo=true`). Dashboard-only (don't decrement stock). Clean up: `delete from checkout_orders where metadata->>'demo'='true';`
 - **Login removed** — no account system (guest checkout by email). Shop header "Log in" → Discord; checkout shows "Guest checkout".
 
-### Phase 6 (NEXT) — shipping: **Shippo live rates + flat weight-tier fallback**
-User is requesting a Shippo **live** key. Note: Shippo's rate-fetch is **free** (does NOT create/charge a label — you only pay to buy one), so quoting won't overspend. **Build:** add `weight_oz` per variant (estimates to start: box ~16oz, pack ~2oz). Primary = Shippo live USPS rate by cart weight + destination; **fallback = flat tiers by weight** (≤3oz, ≤8oz, ≤1lb, ≤2lb…) when no key / API down. **Architectural note:** live destination rates need the **shipping address collected on our checkout page before creating the Stripe session** (today Stripe collects it after) — confirm this flow change before building. Also add a hidden **$0 "test delivery"** option (gated, e.g. `?test=1`) so real end-to-end test purchases cost nothing. Then **bundling** (merge same-buyer paid+unshipped orders, refund excess shipping — never ship unpaid) and **weight variance** at fulfillment (Sealed / All cards / Hits-only ~3oz; charge worst-case weight at checkout, pick actual mode when shipping). Set `SHIPPO_API_KEY` in `.dev.vars` (gitignored). **Editable email template** still deferred.
+### Phase 6 — dynamic shipping ✅ DONE (flat fallback live; Shippo pending valid key)
+**Checkout flow reversed** so we can do address-based rates: we now collect the shipping address on **our** checkout page (Stripe hosted Checkout can't be prefilled), quote shipping, store the address on the order, and create the Stripe session with **address collection OFF** + the chosen rate as a **line item**. Customer enters the address once; Stripe just takes payment. (Reverses the Phase-2 "Stripe collects address" decision.)
+- **`product_variants.weight_oz`** (estimates seeded: box 16 / pack 2). `_lib/shipping.js`: `quoteShipping()` (shared, server-authoritative), `shippoRates()` (live USPS), `flatTier()` fallback (≤4oz $5, ≤8oz $6, ≤1lb $8, ≤2lb $10, ≤5lb $14, ≤10lb $20, else $25), free over $200.
+- **`POST /api/shipping-quote`** (public): cart + address → `{source, weight_oz, subtotal_cents, options[]}`. `create-checkout-session` **re-quotes server-side** and picks the option by id (never trusts the client amount), stores `ship_*` + `shipping_cents` + `total`.
+- **Checkout UI**: address form + live rate radios (auto-refresh on input) + summary. `?test=1` adds a **$0 "Test delivery"** option (hidden from normal customers) for real end-to-end test purchases.
+- **Verified** on wrangler: quote (Shippo→flat fallback, free>$200, test $0, weights), full create-session storing address+tag+shipping, reservation release, checkout UI rates + totals.
+
+⚠️ **Two keys to fix for production:**
+1. **Shippo token is invalid** — the provided `shippo_test_…` returns *"Token does not exist"* from Shippo, so quoting falls back to flat tiers. Re-copy the API token from Shippo (Settings → API) into `.dev.vars`. Live rates work the moment it's valid (request the **live** key from Shippo for production labels).
+2. **`SHIP_FROM_*`** in `.dev.vars` is a placeholder Austin address — set your real fulfillment origin (rates depend on it).
+3. **`RESEND_FROM_EMAIL` can't be a gmail.com address** — Resend only sends from a verified domain; emails will fail until you verify a domain (or use `onboarding@resend.dev` for testing).
+
+### Phase 7 (NEXT) — bundling + weight variance + editable email
+- **Bundling**: merge a buyer's paid+unshipped orders in the dashboard, refund excess shipping via Stripe — never ship unpaid.
+- **Weight variance** at fulfillment: Sealed / All cards / Hits-only (~3oz). Charge worst-case (sealed) weight at checkout; pick actual ship mode when shipping.
+- **Editable email template** once the design is locked (move logo/hero/headline/footer into a settings table editable from admin).
+- Refine **per-variant weights** (admin field) so quotes are accurate.
 
 (Interim test path: Stripe is in **test mode**, so a full purchase with `test-01` + card `4242 4242 4242 4242` costs $0 real money even with the $5 shipping.)
 

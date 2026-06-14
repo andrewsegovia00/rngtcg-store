@@ -36,13 +36,20 @@
 
     <section class="checkout-card">
       <div class="checkout-card__head"><span>2</span><strong>Ship to</strong></div>
-      <p class="stripe-copy">You'll enter your shipping address securely on the next step in Stripe Checkout — no need to type it twice. We just need your email above.</p>
+      <label class="field"><span>Full name *</span><input id="shipName" type="text" autocomplete="name" /></label>
+      <label class="field"><span>Address *</span><input id="shipLine1" type="text" autocomplete="address-line1" /></label>
+      <label class="field"><span>Apt / suite</span><input id="shipLine2" type="text" autocomplete="address-line2" /></label>
+      <div class="field-row">
+        <label class="field"><span>City *</span><input id="shipCity" type="text" autocomplete="address-level2" /></label>
+        <label class="field field--sm"><span>State *</span><input id="shipState" type="text" maxlength="2" placeholder="TX" autocomplete="address-level1" /></label>
+        <label class="field field--sm"><span>ZIP *</span><input id="shipZip" type="text" inputmode="numeric" autocomplete="postal-code" /></label>
+      </div>
+      <label class="field"><span>Phone</span><input id="shipPhone" type="tel" autocomplete="tel" /></label>
     </section>
 
     <section class="checkout-card">
-      <div class="checkout-card__head"><span>3</span><strong>Delivery</strong></div>
-      <button class="ship-choice is-selected" data-ship="standard"><span><strong>Standard</strong><small>4–6 business days</small></span><b id="standardShip">$5.00</b></button>
-      <button class="ship-choice" data-ship="express"><span><strong>Express</strong><small>1–2 business days</small></span><b>$15.00</b></button>
+      <div class="checkout-card__head"><span>3</span><strong>Delivery</strong><button type="button" class="muted-note" id="getRatesBtn">Refresh rates</button></div>
+      <div id="shipRates" class="ship-rates"><p class="stripe-copy">Fill in your address above to see live shipping rates.</p></div>
     </section>
 
     <section class="checkout-card">
