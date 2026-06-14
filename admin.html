@@ -31,7 +31,7 @@
   <main class="wrap">
     <section class="hero-admin">
       <div>
-        <p class="eyebrow">Block 8 · Admin MVP</p>
+        <p class="eyebrow"> Admin </p>
         <h1>Command center</h1>
         <p>View recent orders, watch reserved inventory, update stock, toggle active products, and release abandoned holds without opening Supabase.</p>
       </div>
@@ -95,17 +95,24 @@
         <div class="filter-row">
           <button class="link-pill" id="exportBtn" title="Download paid, not-yet-shipped orders as a PirateShip CSV">Export PirateShip CSV</button>
           <select id="orderFilter">
-            <option value="toship">To ship · all</option>
-            <option value="new">&nbsp;&nbsp;· New</option>
-            <option value="opened_live">&nbsp;&nbsp;· Opened live</option>
-            <option value="resolved">&nbsp;&nbsp;· Resolved</option>
+            <option value="to_open">To open · live</option>
+            <option value="ready">Ready to ship</option>
             <option value="shipped">Shipped</option>
+            <option value="all_active">All unshipped</option>
             <option value="pending">Pending holds</option>
             <option value="all">All orders</option>
             <option value="released">Released</option>
             <option value="expired">Expired</option>
           </select>
         </div>
+      </div>
+      <div class="bulk-bar" id="bulkBar" hidden>
+        <span id="bulkCount">0 selected</span>
+        <button class="small-btn" id="bulkReady">Mark ready to ship</button>
+        <button class="small-btn" id="bulkShipped">Mark shipped</button>
+        <button class="small-btn ghost" id="bulkSealed">Tag sealed</button>
+        <button class="small-btn ghost" id="bulkOpen">Tag open live</button>
+        <button class="small-btn ghost" id="bulkClear">Clear</button>
       </div>
       <div class="orders" id="orders"></div>
     </section>
@@ -114,41 +121,12 @@
       <div class="panel__head">
         <div>
           <p class="eyebrow">Marketing</p>
-          <h2>Lists, coupons & email health</h2>
+          <h2>Lists & email health</h2>
         </div>
+        <a class="link-pill" href="coupons.html">Manage coupons →</a>
       </div>
-
       <div class="metric-grid" id="marketingMetrics" aria-label="Marketing metrics"></div>
-
-      <div class="marketing-grid">
-        <form class="coupon-card" id="couponForm">
-          <h3>Generate discount codes</h3>
-          <p class="coupon-hint">Single-use Stripe promotion codes. Customers redeem them on Stripe checkout.</p>
-          <div class="coupon-fields">
-            <label>How many
-              <input id="couponCount" type="number" min="1" max="100" step="1" value="10" />
-            </label>
-            <label>% off
-              <input id="couponPercent" type="number" min="1" max="90" step="1" value="10" />
-            </label>
-            <label>Expires (days, optional)
-              <input id="couponExpires" type="number" min="1" max="365" step="1" placeholder="never" />
-            </label>
-          </div>
-          <button type="submit" class="primary">Generate codes</button>
-          <textarea id="couponOutput" readonly placeholder="Generated codes appear here — copy and share them." hidden></textarea>
-        </form>
-
-        <div class="coupon-list">
-          <h3>Recent codes</h3>
-          <div class="table-wrap">
-            <table class="data-table" id="couponTable">
-              <thead><tr><th>Code</th><th>% off</th><th>Expires</th><th>Created</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+      <p class="coupon-hint">Welcome codes are issued automatically when someone joins the newsletter. Manual discount codes live on the <a href="coupons.html">coupons page</a>.</p>
     </section>
   </main>
 
@@ -165,6 +143,7 @@
         <input id="variantPrice" type="number" min="0" step="0.01" />
       </label>
       <label class="check"><input id="variantActive" type="checkbox" /> Active variant</label>
+      <p class="field-help">When on, this format (box/pack) shows in the shop and can be purchased. Turn it off to hide just this format without deleting the product.</p>
       <div class="dialog__actions">
         <button value="cancel" type="button" id="cancelVariant">Cancel</button>
         <button class="primary" type="submit">Save changes</button>

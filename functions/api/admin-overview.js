@@ -11,7 +11,7 @@ export async function onRequestGet({ request, env }) {
     const [products, inventory, orders] = await Promise.all([
       supabaseFetch(env, "/products?select=id,category,name,set_code,language,badge,tone,symbol,active,product_variants(sku,format,price_cents,stock_on_hand,stock_reserved,stock_sold,active)&order=category.asc,name.asc"),
       supabaseRpc(env, "get_inventory_snapshot", {}),
-      supabaseFetch(env, "/checkout_orders?select=id,order_number,status,customer_email,stripe_customer_email,shipping_method,subtotal_cents,shipping_cents,total_before_tax_cents,stripe_session_id,expires_at,paid_at,released_at,fulfilled_at,tracking_number,stage,tiktok_username,ship_name,ship_phone,ship_line1,ship_line2,ship_city,ship_state,ship_postal_code,ship_country,created_at,checkout_order_items(id,title,format,language,category,set_code,quantity,unit_amount_cents,line_amount_cents)&order=created_at.desc&limit=60")
+      supabaseFetch(env, "/checkout_orders?select=id,order_number,status,customer_email,stripe_customer_email,shipping_method,subtotal_cents,shipping_cents,total_before_tax_cents,stripe_session_id,expires_at,paid_at,released_at,fulfilled_at,tracking_number,order_tag,ready_to_ship,tiktok_username,ship_name,ship_phone,ship_line1,ship_line2,ship_city,ship_state,ship_postal_code,ship_country,created_at,checkout_order_items(id,title,format,language,category,set_code,quantity,unit_amount_cents,line_amount_cents)&order=created_at.desc&limit=60")
     ]);
 
     const totals = {

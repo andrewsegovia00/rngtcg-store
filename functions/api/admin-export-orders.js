@@ -52,10 +52,10 @@ export async function onRequestGet({ request, env }) {
   try {
     const orders = await supabaseFetch(
       env,
-      "/checkout_orders?status=eq.paid&fulfilled_at=is.null" +
+      "/checkout_orders?status=eq.paid&ready_to_ship=eq.true&fulfilled_at=is.null" +
         "&select=order_number,paid_at,created_at,customer_email,stripe_customer_email,tiktok_username," +
         "ship_name,ship_phone,ship_line1,ship_line2,ship_city,ship_state,ship_postal_code,ship_country," +
-        "total_before_tax_cents,checkout_order_items(title,format,language,quantity)" +
+        "subtotal_cents,shipping_cents,checkout_order_items(title,format,language,quantity)" +
         "&order=paid_at.asc"
     );
 
@@ -77,7 +77,8 @@ export async function onRequestGet({ request, env }) {
       "Item Description",
       "Item Quantity",
       "Weight (oz)",
-      "Order Value (USD)"
+      "Item Total (USD)",
+      "Shipping Paid (USD)"
     ];
 
     const rows = list.map(o => {
@@ -99,7 +100,8 @@ export async function onRequestGet({ request, env }) {
         describeItems(items),
         totalItemCount(items),
         estimateOrderWeightOz(items),
-        (Number(o.total_before_tax_cents || 0) / 100).toFixed(2)
+        (Number(o.subtotal_cents || 0) / 100).toFixed(2),
+        (Number(o.shipping_cents || 0) / 100).toFixed(2)
       ].map(csvCell).join(",");
     });
 

@@ -92,9 +92,9 @@ async function startStripeCheckout(){
 
   const email = $("#email")?.value?.trim() || "";
   const tiktok = $("#tiktokUsername")?.value?.trim() || "";
-  if (!tiktok) {
-    setCheckoutState("error", "Add your TikTok handle or preferred name so we can shout you out on live.");
-    $("#tiktokUsername")?.focus();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    setCheckoutState("error", "Enter a valid email so we can send your order confirmation.");
+    $("#email")?.focus();
     return;
   }
   setCheckoutState("loading", "Creating secure Stripe checkout…");

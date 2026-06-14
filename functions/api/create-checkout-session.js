@@ -123,15 +123,22 @@ export async function onRequestPost(context) {
         details: error.details || null
       }, error.status || 400);
     }
-    // Store the TikTok handle on the freshly-created order (best-effort).
-    if (tiktok && reservation?.order_id) {
+    // Tag the freshly-created order: a username means it was bought during a
+    // live → "open_live" (must be opened on stream before shipping). No username
+    // → "sealed" → ready to ship as-is. (best-effort)
+    if (reservation?.order_id) {
+      const orderTag = tiktok ? "open_live" : "sealed";
       try {
         await supabaseFetch(env, `/checkout_orders?id=eq.${encodeURIComponent(reservation.order_id)}`, {
           method: "PATCH",
           headers: { prefer: "return=minimal" },
-          body: JSON.stringify({ tiktok_username: tiktok })
+          body: JSON.stringify({
+            tiktok_username: tiktok || null,
+            order_tag: orderTag,
+            ready_to_ship: orderTag === "sealed"
+          })
         });
-      } catch (e) { console.warn("Could not save tiktok_username", e.message); }
+      } catch (e) { console.warn("Could not tag order", e.message); }
     }
     stripeLines = (reservation?.lines || []).map(l => ({
       name: `${l.title} — ${l.format === "box" ? "Booster Box" : "Booster Pack"}`,

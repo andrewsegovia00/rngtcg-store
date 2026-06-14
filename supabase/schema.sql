@@ -68,7 +68,8 @@ create table if not exists public.checkout_orders (
   fulfilled_at timestamptz,
   tracking_number text,
   tiktok_username text,
-  stage text not null default 'new' check (stage in ('new','opened_live','resolved','shipped')),
+  order_tag text check (order_tag in ('sealed','open_live')),
+  ready_to_ship boolean not null default false,
   metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

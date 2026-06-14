@@ -188,15 +188,17 @@ function statusBadge(status) {
   return `<span class="badge ${cls}">${cap(status)}</span>`;
 }
 
-const STAGE_LABEL = { new: "New", opened_live: "Opened live", resolved: "Resolved", shipped: "Shipped" };
+const TAG_LABEL = { sealed: "Sealed", open_live: "Open live" };
+const selectedOrders = new Set();
 
 function orderMatchesFilter(order, mode) {
   if (mode === "all") return true;
   const paid = order.status === "paid";
-  if (mode === "toship") return paid && !order.fulfilled_at;
-  if (mode === "shipped") return paid && !!order.fulfilled_at;
-  if (mode === "new" || mode === "opened_live" || mode === "resolved")
-    return paid && !order.fulfilled_at && (order.stage || "new") === mode;
+  const shipped = paid && !!order.fulfilled_at;
+  if (mode === "to_open") return paid && !shipped && order.order_tag === "open_live" && !order.ready_to_ship;
+  if (mode === "ready") return paid && !shipped && !!order.ready_to_ship;
+  if (mode === "shipped") return shipped;
+  if (mode === "all_active") return paid && !shipped;
   return order.status === mode; // pending / released / expired
 }
 
@@ -214,6 +216,10 @@ function shipAddress(order) {
 function renderOrders() {
   const mode = $("#orderFilter").value;
   const orders = (state.orders || []).filter(order => orderMatchesFilter(order, mode));
+  // Drop selections that are no longer visible.
+  const visibleIds = new Set(orders.map(o => o.id));
+  [...selectedOrders].forEach(id => { if (!visibleIds.has(id)) selectedOrders.delete(id); });
+
   const box = $("#orders");
   box.innerHTML = orders.map(order => {
     const email = order.customer_email || order.stripe_customer_email || "No email yet";
@@ -221,18 +227,29 @@ function renderOrders() {
     const canRelease = order.status === "pending";
     const isPaid = order.status === "paid";
     const isFulfilled = isPaid && !!order.fulfilled_at;
-    const stage = order.stage || "new";
+    const tag = order.order_tag || "sealed";
+    const ready = !!order.ready_to_ship;
     const tiktok = order.tiktok_username ? `<span class="order-tiktok">@${order.tiktok_username}</span>` : "";
-    const stageBadge = isFulfilled
+    const stateBadge = isFulfilled
       ? `<span class="badge good">Shipped ${fmtDate(order.fulfilled_at)}${order.tracking_number ? ` · ${order.tracking_number}` : ""}</span>`
-      : isPaid ? `<span class="badge ${stage === 'opened_live' ? 'live' : stage === 'resolved' ? 'dark' : 'warn'}">${STAGE_LABEL[stage] || stage}</span>` : "";
-    return `<article class="order-card">
+      : isPaid
+        ? `<span class="badge ${tag === 'open_live' ? 'live' : 'dark'}">${TAG_LABEL[tag] || tag}</span>${ready ? `<span class="badge good">Ready</span>` : (tag === 'open_live' ? `<span class="badge warn">To open</span>` : "")}`
+        : "";
+    const tagSelect = isPaid && !isFulfilled
+      ? `<select class="tag-select" data-id="${order.id}" title="Order type">
+           <option value="sealed" ${tag==='sealed'?'selected':''}>Sealed</option>
+           <option value="open_live" ${tag==='open_live'?'selected':''}>Open live</option>
+         </select>` : "";
+    return `<article class="order-card${isFulfilled ? '' : ' is-actionable'}">
       <div class="order-head">
-        <div>
-          <div class="order-title">${order.order_number} ${tiktok}</div>
-          <div class="order-email">${email} · ${fmtDate(order.created_at)}</div>
+        <div class="order-head__main">
+          ${isPaid && !isFulfilled ? `<input type="checkbox" class="order-pick" data-id="${order.id}" ${selectedOrders.has(order.id)?'checked':''} aria-label="Select order" />` : ""}
+          <div>
+            <div class="order-title">${order.order_number} ${tiktok}</div>
+            <div class="order-email">${email} · ${fmtDate(order.created_at)}</div>
+          </div>
         </div>
-        <div class="tiny-edit">${statusBadge(order.status)}${stageBadge}</div>
+        <div class="tiny-edit">${statusBadge(order.status)}${stateBadge}</div>
       </div>
       ${isPaid ? shipAddress(order) : ""}
       <div class="order-lines">
@@ -242,9 +259,8 @@ function renderOrders() {
         <span class="order-total">${money(order.total_before_tax_cents)}</span>
         <div class="tiny-edit">
           ${canRelease ? `<span class="mono-mini">Expires ${fmtDate(order.expires_at)}</span><button class="small-btn danger" data-release="${order.id}">Release hold</button>` : ""}
-          ${isPaid && !isFulfilled && stage !== "opened_live" ? `<button class="small-btn ghost" data-stage="opened_live" data-id="${order.id}">Opened live</button>` : ""}
-          ${isPaid && !isFulfilled && stage !== "resolved" ? `<button class="small-btn ghost" data-stage="resolved" data-id="${order.id}">Resolved</button>` : ""}
-          ${isPaid && !isFulfilled && stage !== "new" ? `<button class="small-btn ghost" data-stage="new" data-id="${order.id}">↺ New</button>` : ""}
+          ${tagSelect}
+          ${isPaid && !isFulfilled && !ready ? `<button class="small-btn" data-ready="${order.id}">Mark ready to ship</button>` : ""}
           ${isPaid && !isFulfilled ? `<button class="small-btn" data-fulfill="${order.id}">Mark shipped</button>` : ""}
           ${isFulfilled ? `<button class="small-btn ghost" data-unfulfill="${order.id}">Undo shipped</button>` : ""}
         </div>
@@ -253,15 +269,29 @@ function renderOrders() {
   }).join("") || `<article class="order-card">No orders match this filter.</article>`;
 
   $$('[data-release]').forEach(btn => btn.onclick = () => releaseOrder(btn.dataset.release));
-  $$('[data-fulfill]').forEach(btn => btn.onclick = () => markFulfilled(btn.dataset.fulfill));
-  $$('[data-unfulfill]').forEach(btn => btn.onclick = () => markFulfilled(btn.dataset.unfulfill, true));
-  $$('[data-stage]').forEach(btn => btn.onclick = () => setStage(btn.dataset.id, btn.dataset.stage));
+  $$('[data-fulfill]').forEach(btn => btn.onclick = () => markFulfilled([btn.dataset.fulfill]));
+  $$('[data-unfulfill]').forEach(btn => btn.onclick = () => markFulfilled([btn.dataset.unfulfill], true));
+  $$('[data-ready]').forEach(btn => btn.onclick = () => updateOrders([btn.dataset.ready], { ready_to_ship: true }));
+  $$('.tag-select').forEach(sel => sel.onchange = () => updateOrders([sel.dataset.id], { order_tag: sel.value }));
+  $$('.order-pick').forEach(cb => cb.onchange = () => {
+    cb.checked ? selectedOrders.add(cb.dataset.id) : selectedOrders.delete(cb.dataset.id);
+    renderBulkBar();
+  });
+  renderBulkBar();
 }
 
-async function setStage(orderId, stage) {
+function renderBulkBar() {
+  const bar = $("#bulkBar");
+  if (!bar) return;
+  const n = selectedOrders.size;
+  bar.hidden = n === 0;
+  if (n) $("#bulkCount").textContent = `${n} selected`;
+}
+
+async function updateOrders(ids, patch) {
   try {
-    await api("/api/admin-set-order-stage", { method: "POST", body: JSON.stringify({ order_id: orderId, stage }) });
-    showStatus(`Moved to ${STAGE_LABEL[stage] || stage}.`, "ok");
+    await api("/api/admin-update-order", { method: "POST", body: JSON.stringify({ order_ids: ids, ...patch }) });
+    showStatus("Orders updated.", "ok");
     await load();
   } catch (error) {
     showStatus(error.message, "err");
@@ -282,19 +312,19 @@ async function releaseOrder(orderId) {
   }
 }
 
-async function markFulfilled(orderId, undo = false) {
-  if (undo) {
-    if (!confirm("Mark this order as NOT shipped again?")) return;
-  }
-  const body = { order_ids: [orderId], undo };
-  if (!undo) {
+async function markFulfilled(ids, undo = false) {
+  ids = Array.isArray(ids) ? ids : [ids];
+  if (!ids.length) return;
+  if (undo && !confirm("Mark these order(s) as NOT shipped again?")) return;
+  const body = { order_ids: ids, undo };
+  if (!undo && ids.length === 1) {
     const tracking = prompt("Tracking number (optional — leave blank to skip):", "");
     if (tracking === null) return; // cancelled
     if (tracking.trim()) body.tracking_number = tracking.trim();
   }
   try {
     await api("/api/admin-mark-fulfilled", { method: "POST", body: JSON.stringify(body) });
-    showStatus(undo ? "Order reopened as to-ship." : "Order marked shipped.", "ok");
+    showStatus(undo ? "Reopened as to-ship." : `Marked ${ids.length} shipped.`, "ok");
     await load();
   } catch (error) {
     showStatus(error.message, "err");
@@ -352,40 +382,7 @@ function renderMarketing() {
     ["Bounce rate", denom ? pct(bounced, denom) : "—"]
   ];
   $("#marketingMetrics").innerHTML = metrics.map(([label, value]) => `<article class="metric"><span>${label}</span><strong>${value}</strong></article>`).join("");
-
-  const body = $("#couponTable tbody");
-  body.innerHTML = (marketing.coupons || []).map(c => `<tr>
-    <td class="mono-mini">${c.code}</td>
-    <td>${c.percent_off}%</td>
-    <td>${c.expires_at ? fmtDate(c.expires_at) : "Never"}</td>
-    <td>${fmtDate(c.created_at)}</td>
-  </tr>`).join("") || `<tr><td colspan="4">No codes generated yet.</td></tr>`;
 }
-
-async function generateCoupons(event) {
-  event.preventDefault();
-  const count = Number.parseInt($("#couponCount").value, 10);
-  const percent = Number.parseInt($("#couponPercent").value, 10);
-  const expires = $("#couponExpires").value ? Number.parseInt($("#couponExpires").value, 10) : null;
-  try {
-    showStatus("Generating codes in Stripe…", "ok");
-    const data = await api("/api/admin-generate-coupons", {
-      method: "POST",
-      body: JSON.stringify({ count, percent_off: percent, expires_days: expires })
-    });
-    const out = $("#couponOutput");
-    out.hidden = false;
-    out.value = (data.codes || []).join("\n");
-    out.rows = Math.min(Math.max((data.codes || []).length, 2), 12);
-    showStatus(data.warning || `Generated ${data.count} code(s).`, data.warning ? "err" : "ok");
-    marketing = await api("/api/admin-marketing");
-    renderMarketing();
-  } catch (error) {
-    showStatus(error.message, "err");
-  }
-}
-
-$("#couponForm").addEventListener("submit", generateCoupons);
 
 $("#tokenForm").addEventListener("submit", event => {
   event.preventDefault();
@@ -398,8 +395,13 @@ $("#refreshBtn").onclick = load;
 $("#lockBtn").onclick = () => { clearToken(); $("#adminToken").value = ""; showStatus("Admin session locked.", "err"); };
 $("#productSearch").addEventListener("input", renderInventory);
 $("#stockFilter").addEventListener("change", renderInventory);
-$("#orderFilter").addEventListener("change", renderOrders);
+$("#orderFilter").addEventListener("change", () => { selectedOrders.clear(); renderOrders(); });
 $("#exportBtn").onclick = exportOrders;
+$("#bulkReady").onclick = () => selectedOrders.size && updateOrders([...selectedOrders], { ready_to_ship: true });
+$("#bulkShipped").onclick = () => selectedOrders.size && markFulfilled([...selectedOrders]);
+$("#bulkSealed").onclick = () => selectedOrders.size && updateOrders([...selectedOrders], { order_tag: "sealed" });
+$("#bulkOpen").onclick = () => selectedOrders.size && updateOrders([...selectedOrders], { order_tag: "open_live" });
+$("#bulkClear").onclick = () => { selectedOrders.clear(); renderOrders(); };
 $("#variantForm").addEventListener("submit", saveVariant);
 $("#cancelVariant").onclick = () => $("#variantDialog").close();
 

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="robots" content="noindex" />
+<meta name="description" content="R&G TCG coupons." />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>R&G TCG — Coupons</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <header class="admin-header">
+    <a class="brand" href="admin.html" aria-label="Back to admin">
+      <span class="brand__mark">R&G</span>
+      <span>
+        <span class="brand__name">R&G TCG</span>
+        <span class="brand__sub">Coupons</span>
+      </span>
+    </a>
+    <div class="admin-actions">
+      <a class="link-pill" href="admin.html">← Admin</a>
+      <button class="link-pill" id="refreshBtn">Refresh</button>
+      <button class="link-pill danger" id="lockBtn">Lock</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero-admin">
+      <div>
+        <p class="eyebrow">Discount codes</p>
+        <h1>Coupons</h1>
+        <p>Newsletter signups get a welcome code automatically — only create codes here for one-off promos. Every code is single-use (Stripe enforces one redemption) and can't be stacked with another at checkout.</p>
+      </div>
+      <form class="token-card" id="tokenForm">
+        <label for="adminToken">Admin token</label>
+        <div class="token-row">
+          <input id="adminToken" type="password" autocomplete="off" placeholder="Paste ADMIN_TOKEN" />
+          <button type="submit">Unlock</button>
+        </div>
+        <p>Stored in this browser session only. Server still checks the token on every call.</p>
+      </form>
+    </section>
+
+    <section class="status" id="status" hidden></section>
+
+    <section class="panel">
+      <div class="panel__head">
+        <div><p class="eyebrow">Create</p><h2>Generate discount codes</h2></div>
+      </div>
+      <div class="marketing-grid">
+        <form class="coupon-card" id="couponForm">
+          <p class="coupon-hint">Single-use Stripe promotion codes. Customers redeem them on Stripe checkout.</p>
+          <div class="coupon-fields">
+            <label>How many<input id="couponCount" type="number" min="1" max="100" step="1" value="1" /></label>
+            <label>% off<input id="couponPercent" type="number" min="1" max="90" step="1" value="10" /></label>
+            <label>Expires (days)<input id="couponExpires" type="number" min="1" max="365" step="1" placeholder="never" /></label>
+          </div>
+          <button type="submit" class="primary">Generate codes</button>
+          <textarea id="couponOutput" readonly placeholder="Generated codes appear here — copy and share them." hidden></textarea>
+        </form>
+        <div class="coupon-list">
+          <h3>All codes</h3>
+          <div class="table-wrap">
+            <table class="data-table" id="couponTable">
+              <thead><tr><th>Code</th><th>% off</th><th>Expires</th><th>Created</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="coupons.js"></script>
+</body>
+</html>

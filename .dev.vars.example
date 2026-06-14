@@ -24,3 +24,7 @@ DISCORD_INVITE_URL=https://discord.gg/JaaQuMrcTa
 # Phase 5 — Resend webhook signing secret (whsec_...) for email analytics.
 # From Resend dashboard → Webhooks. Enables /api/resend-webhook ingestion.
 RESEND_WEBHOOK_SECRET=whsec_replace_me
+
+# Phase 6 — Shippo shipping rates. Test key works for quoting; request a live
+# key for production labels. Put the real key in .dev.vars, never here.
+SHIPPO_API_KEY=shippo_test_replace_me

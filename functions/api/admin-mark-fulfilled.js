@@ -24,10 +24,9 @@ export async function onRequestPost({ request, env }) {
 
   const undo = Boolean(payload.undo);
   const patch = undo
-    ? { fulfilled_at: null, tracking_number: null, stage: "resolved" }
+    ? { fulfilled_at: null, tracking_number: null }
     : {
         fulfilled_at: new Date().toISOString(),
-        stage: "shipped",
         ...(payload.tracking_number ? { tracking_number: String(payload.tracking_number).trim().slice(0, 120) } : {})
       };
 
