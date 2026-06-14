@@ -195,4 +195,62 @@ if (new URLSearchParams(location.search).get("checkout") === "cancelled") {
   releaseCancelledReservationIfPresent();
 }
 
+/* ----------------------------------------------------------------------------
+   Google Places address autocomplete (mimics Stripe's address experience).
+   Uses the current PlaceAutocompleteElement (the classic Autocomplete widget is
+   not available to Google customers created after March 2025). Purely additive:
+   a "Search address" box fills the manual fields below. If no key is configured
+   (or Maps fails to load / the key is API-restricted), the manual fields stay —
+   nothing breaks.
+   ---------------------------------------------------------------------------- */
+function fillAddressFromComponents(components){
+  const get = type => (components || []).find(c => (c.types || []).includes(type)) || null;
+  const num = get("street_number"); const route = get("route");
+  const line1 = [num && (num.longText || num.long_name), route && (route.longText || route.long_name)].filter(Boolean).join(" ");
+  const city = get("locality") || get("postal_town") || get("sublocality_level_1") || get("sublocality");
+  const state = get("administrative_area_level_1");
+  const zip = get("postal_code");
+  if (line1) $("#shipLine1").value = line1;
+  if (city) $("#shipCity").value = city.longText || city.long_name;
+  if (state) $("#shipState").value = state.shortText || state.short_name;
+  if (zip) $("#shipZip").value = zip.longText || zip.long_name;
+  if (!$("#shipName").value) $("#shipName").focus();
+  fetchRates();
+}
+
+async function initAddressAutocomplete(){
+  const host = $("#addrAutocomplete");
+  if (!host || !window.google?.maps?.importLibrary) return;
+  try {
+    const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
+    const el = new PlaceAutocompleteElement();
+    try { el.includedRegionCodes = ["us"]; } catch (_) {}
+    el.id = "placeAutocomplete";
+    host.appendChild(el);
+    host.hidden = false;
+    el.addEventListener("gmp-select", async ({ placePrediction }) => {
+      try {
+        const place = placePrediction.toPlace();
+        await place.fetchFields({ fields: ["addressComponents"] });
+        if (place.addressComponents) fillAddressFromComponents(place.addressComponents);
+      } catch (_) { /* fall back to manual entry */ }
+    });
+  } catch (_) { /* manual entry still works */ }
+}
+window.__rgInitMaps = initAddressAutocomplete;
+
+async function loadAddressAutocomplete(){
+  if (location.protocol === "file:") return;
+  try {
+    const res = await fetch("/api/public-config");
+    const cfg = await res.json().catch(() => ({}));
+    if (!cfg.maps_key) return; // no key → plain manual entry
+    const s = document.createElement("script");
+    s.async = true;
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(cfg.maps_key)}&libraries=places&callback=__rgInitMaps&loading=async`;
+    document.head.appendChild(s);
+  } catch (_) { /* manual entry still works */ }
+}
+loadAddressAutocomplete();
+
 renderSummary();

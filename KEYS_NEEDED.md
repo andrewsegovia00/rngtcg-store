@@ -124,6 +124,17 @@ Point a Resend webhook at `https://YOUR-DOMAIN/api/resend-webhook` (events:
 sent/delivered/opened/bounced/complained). Events land in `email_events` and
 drive the open/delivery/bounce rates in the admin Marketing panel.
 
+**Address autocomplete (Phase 8 — optional):**
+
+```txt
+GOOGLE_MAPS_API_KEY=AIza...   # browser-safe key, served via /api/public-config
+```
+
+Powers Google Places autocomplete on the checkout shipping form (mimics Stripe's
+address experience). This key is **public by design** — lock it down in Google
+Cloud Console: restrict to your site's HTTP referrers and enable only the **Maps
+JavaScript API** + **Places API**. If unset, checkout uses plain manual entry.
+
 **Still later:**
 
 ```txt

@@ -37,3 +37,9 @@ SHIP_FROM_STATE=TX
 SHIP_FROM_ZIP=78701
 SHIP_FROM_COUNTRY=US
 SHIP_FROM_PHONE=5125550100
+
+# Phase 8 — Google Places address autocomplete on the checkout page (optional).
+# Browser-safe, public key. Restrict it in Google Cloud Console to your domain
+# (HTTP referrers) + the Maps JavaScript API + Places API only. If unset, the
+# checkout falls back to plain manual address entry — nothing breaks.
+GOOGLE_MAPS_API_KEY=AIzaSyDA0ATy7zyi8qtJhPoJkxydiwSA5Umavcs

@@ -539,6 +539,28 @@ create table if not exists public.email_events (
 create index if not exists idx_email_events_type on public.email_events(type);
 create index if not exists idx_email_events_email_id on public.email_events(resend_email_id);
 
+-- Phase 8: editable email template. Single row (id=1); blank columns fall back
+-- to env asset URLs then to the built-in defaults in functions/_lib/email.js.
+create table if not exists public.email_settings (
+  id smallint primary key default 1,
+  logo_url text,
+  hero_gif_url text,
+  discord_url text,
+  order_eyebrow text,
+  order_headline text,
+  order_body text,          -- supports {order_number}
+  cta_eyebrow text,
+  cta_body text,
+  order_footer text,
+  welcome_eyebrow text,
+  welcome_headline text,    -- supports {percent}
+  welcome_body text,
+  welcome_footer text,
+  updated_at timestamptz not null default now(),
+  constraint email_settings_singleton check (id = 1)
+);
+insert into public.email_settings (id) values (1) on conflict (id) do nothing;
+
 create or replace function public.subscribe_newsletter(p_email text, p_source text default 'checkout')
 returns void language plpgsql security definer set search_path = public as $$
 begin
@@ -578,3 +600,4 @@ alter table public.newsletter_subscribers disable row level security;
 alter table public.order_recipients disable row level security;
 alter table public.coupons disable row level security;
 alter table public.email_events disable row level security;
+alter table public.email_settings disable row level security;

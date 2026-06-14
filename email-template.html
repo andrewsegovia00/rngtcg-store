@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="robots" content="noindex" />
+<meta name="description" content="R&G TCG email template editor." />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>R&G TCG — Email template</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <header class="admin-header">
+    <a class="brand" href="admin.html" aria-label="Back to admin">
+      <span class="brand__mark">R&G</span>
+      <span>
+        <span class="brand__name">R&G TCG</span>
+        <span class="brand__sub">Email template</span>
+      </span>
+    </a>
+    <div class="admin-actions">
+      <a class="link-pill" href="admin.html">← Admin</a>
+      <button class="link-pill" id="refreshBtn">Reload</button>
+      <button class="link-pill danger" id="lockBtn">Lock</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero-admin">
+      <div>
+        <p class="eyebrow">Branded emails</p>
+        <h1>Email template</h1>
+        <p>Edit the order-confirmation and welcome emails. Leave a field blank to use the built-in default (shown as the placeholder). Use <code>{order_number}</code> in the order body and <code>{percent}</code> in the welcome headline/body — they fill in automatically.</p>
+      </div>
+      <form class="token-card" id="tokenForm">
+        <label for="adminToken">Admin token</label>
+        <div class="token-row">
+          <input id="adminToken" type="password" autocomplete="off" placeholder="Paste ADMIN_TOKEN" />
+          <button type="submit">Unlock</button>
+        </div>
+        <p>Stored in this browser session only. Server still checks the token on every call.</p>
+      </form>
+    </section>
+
+    <section class="status" id="status" hidden></section>
+
+    <section class="panel">
+      <div class="panel__head">
+        <div><p class="eyebrow">Content</p><h2>Editable fields</h2></div>
+        <button class="primary" id="saveBtn" type="button">Save changes</button>
+      </div>
+
+      <div class="email-editor">
+        <form id="emailForm" class="email-fields" autocomplete="off">
+          <fieldset class="email-group">
+            <legend>Brand assets</legend>
+            <label>Logo image URL<input data-field="logo_url" type="url" /></label>
+            <label>Hero GIF / image URL <small>(order email)</small><input data-field="hero_gif_url" type="url" /></label>
+            <label>Discord invite URL<input data-field="discord_url" type="url" /></label>
+          </fieldset>
+
+          <fieldset class="email-group">
+            <legend>Order confirmation</legend>
+            <label>Eyebrow<input data-field="order_eyebrow" type="text" /></label>
+            <label>Headline<input data-field="order_headline" type="text" /></label>
+            <label>Body <small>(supports {order_number})</small><textarea data-field="order_body" rows="3"></textarea></label>
+            <label>Discord CTA eyebrow<input data-field="cta_eyebrow" type="text" /></label>
+            <label>Discord CTA body<textarea data-field="cta_body" rows="2"></textarea></label>
+            <label>Footer<textarea data-field="order_footer" rows="2"></textarea></label>
+          </fieldset>
+
+          <fieldset class="email-group">
+            <legend>Welcome / newsletter</legend>
+            <label>Eyebrow<input data-field="welcome_eyebrow" type="text" /></label>
+            <label>Headline <small>(supports {percent})</small><input data-field="welcome_headline" type="text" /></label>
+            <label>Body <small>(supports {percent})</small><textarea data-field="welcome_body" rows="3"></textarea></label>
+            <label>Footer<textarea data-field="welcome_footer" rows="2"></textarea></label>
+          </fieldset>
+        </form>
+
+        <div class="email-preview">
+          <div class="email-preview__head">
+            <h3>Live preview</h3>
+            <div class="seg" role="tablist">
+              <button type="button" class="seg__btn is-active" data-preview="order">Order</button>
+              <button type="button" class="seg__btn" data-preview="welcome">Welcome</button>
+            </div>
+          </div>
+          <iframe id="previewFrame" title="Email preview" sandbox=""></iframe>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="email-template.js"></script>
+</body>
+</html>

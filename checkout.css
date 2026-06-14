@@ -19,3 +19,7 @@ body{background:var(--color-bg);background-image:radial-gradient(circle at 1px 1
 .stripe-handoff strong{display:block;font-size:var(--text-body-lg);margin-bottom:var(--space-1)}
 .stripe-handoff p{font-size:var(--text-body-sm);color:var(--color-text-muted);margin:0;line-height:1.45}.place-order[disabled]{opacity:.75;cursor:wait}.place-order.is-loading{background:var(--color-primary);box-shadow:4px 4px 0 var(--color-ink)}.checkout-message{min-height:22px;text-align:center;font-family:var(--font-mono);font-size:var(--text-label);font-weight:700;letter-spacing:.4px;color:var(--color-text-muted);margin-top:var(--space-3)}.checkout-message.is-error{color:var(--color-danger)}.checkout-message.is-success{color:var(--color-success)}
 @media(max-width:680px){.stripe-handoff{align-items:flex-start}.stripe-handoff__mark{width:64px}}
+
+/* Phase 8 — Google Places address search box (additive; fills manual fields) */
+.addr-search gmp-place-autocomplete { width: 100%; display: block; margin-top: 6px; }
+.addr-search { gap: 4px; }
