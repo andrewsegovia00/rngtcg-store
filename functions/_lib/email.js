@@ -55,7 +55,7 @@ function itemRows(items) {
 }
 
 export function buildOrderEmailHtml(order, env) {
-  const discord = env.DISCORD_INVITE_URL || "https://discord.gg/rgtcg";
+  const discord = env.DISCORD_INVITE_URL || "https://discord.gg/JaaQuMrcTa";
   const logo = env.RESEND_LOGO_URL
     ? `<img src="${escapeHtml(env.RESEND_LOGO_URL)}" alt="R&amp;G TCG" height="36" style="display:block;border:0;height:36px">`
     : `<span style="font:700 24px/1 Georgia,serif;color:#fff">R&amp;G TCG</span>`;

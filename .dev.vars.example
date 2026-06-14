@@ -19,7 +19,7 @@ RESEND_FROM_EMAIL=orders@yourdomain.com
 # Optional email brand assets / links (leave blank to skip gracefully):
 RESEND_LOGO_URL=
 RESEND_HERO_GIF_URL=
-DISCORD_INVITE_URL=https://discord.gg/rgtcg
+DISCORD_INVITE_URL=https://discord.gg/JaaQuMrcTa
 
 # Phase 5 — Resend webhook signing secret (whsec_...) for email analytics.
 # From Resend dashboard → Webhooks. Enables /api/resend-webhook ingestion.
