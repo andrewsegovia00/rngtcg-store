@@ -1,11 +1,12 @@
 /* ============================================================================
    Public shipping quote. POST /api/shipping-quote
-   Body: { cart: [{productId, format, quantity}], address: {city,state,postal_code,country,...}, test?: bool }
+   Body: { cart: [{productId, format, quantity}], address: {city,state,postal_code,country,...} }
    Returns { source, weight_oz, subtotal_cents, options:[{id,label,amount_cents,carrier?,days?}] }.
    Server is authoritative — create-checkout-session re-quotes and never trusts
    the client's amount.
    ============================================================================ */
 import { quoteShipping } from "../_lib/shipping.js";
+import { fail } from "../_lib/respond.js";
 
 const json = (body, status = 200) => new Response(JSON.stringify(body, null, 2), {
   status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
@@ -24,9 +25,9 @@ export async function onRequestPost({ request, env }) {
   }
 
   try {
-    const quote = await quoteShipping(env, { cart, address, test: Boolean(payload.test) });
+    const quote = await quoteShipping(env, { cart, address });
     return json({ ok: true, ...quote });
   } catch (error) {
-    return json({ error: error.message || "Could not get shipping rates.", details: error.details || null }, error.status || 500);
+    return fail(error, { context: "shipping-quote", fallback: "Could not get shipping rates. Please try again." });
   }
 }

@@ -9,6 +9,7 @@
    response so the modal can still show it.
    ============================================================================ */
 import { json } from "../_lib/admin.js";
+import { fail } from "../_lib/respond.js";
 import { hasSupabase, supabaseFetch, supabaseRpc } from "../_lib/supabase.js";
 import { hasStripe } from "../_lib/stripe.js";
 import { createSingleUseCoupon } from "../_lib/coupons.js";
@@ -56,6 +57,6 @@ export async function onRequestPost({ request, env }) {
     // the admin in the subscriber list). `emailed` tells the UI what to say.
     return json({ ok: true, subscribed: true, percent_off: WELCOME_PERCENT, emailed });
   } catch (error) {
-    return json({ error: error.message || "Could not sign up.", details: error.details || null }, error.status || 500);
+    return fail(error, { context: "newsletter-signup", fallback: "Could not sign you up right now. Please try again." });
   }
 }

@@ -6,7 +6,6 @@
    takes payment (no second address entry).
    ============================================================================ */
 const FREE_SHIPPING_THRESHOLD = 200;
-const TEST_MODE = new URLSearchParams(location.search).get("test") === "1";
 const $ = s => document.querySelector(s);
 
 let chosenShipping = null;   // { id, amount_cents, label }
@@ -81,7 +80,7 @@ function renderRates(quote){
       <span class="ship-rate__label"><strong>${o.label}</strong>${o.days?`<small>${o.days} day${o.days>1?'s':''}</small>`:''}</span>
       <b>${o.amount_cents === 0 ? 'Free' : formatMoney(o.amount_cents/100)}</b>
     </label>`).join("");
-  // default to first (cheapest / free / test)
+  // default to first (cheapest / free)
   chosenShipping = quote.options[0];
   box.querySelectorAll('input[name="shiprate"]').forEach(r => r.onchange = () => {
     chosenShipping = quote.options.find(o => o.id === r.value) || null;
@@ -110,7 +109,7 @@ async function fetchRates(){
     const res = await fetch("/api/shipping-quote", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ cart, address, test: TEST_MODE })
+      body: JSON.stringify({ cart, address })
     });
     const data = await res.json().catch(() => ({}));
     if (token !== ratesToken) return; // a newer request superseded this one
@@ -172,10 +171,13 @@ async function startStripeCheckout(){
     const response = await fetch("/api/create-checkout-session", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ cart, email, tiktok_username: tiktok, newsletter, address, shipping_id: chosenShipping.id, test: TEST_MODE })
+      body: JSON.stringify({ cart, email, tiktok_username: tiktok, newsletter, address, shipping_id: chosenShipping.id })
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data.url) throw new Error(data.error || "Could not create Stripe Checkout Session.");
+    if (!response.ok || !data.url) {
+      const base = data.error || "Couldn't start checkout. Please try again.";
+      throw new Error(data.ref ? `${base} (ref: ${data.ref})` : base);
+    }
     setCheckoutState("success", data.order_number ? `Reserved ${data.order_number}. Redirecting to Stripe…` : "Redirecting to Stripe…");
     window.location.assign(data.url);
   } catch (error) {

@@ -1,4 +1,5 @@
 import { hasSupabase, supabaseFetch } from "../_lib/supabase.js";
+import { fail } from "../_lib/respond.js";
 
 const json = (body, status = 200) => new Response(JSON.stringify(body, null, 2), {
   status,
@@ -23,6 +24,6 @@ export async function onRequestGet({ request, env }) {
     if (!order) return json({ supabase_enabled: true, session_id: sessionId, found: false });
     return json({ supabase_enabled: true, found: true, order });
   } catch (error) {
-    return json({ error: error.message || "Could not load order.", details: error.details || null }, error.status || 500);
+    return fail(error, { context: "order-status", fallback: "Could not load your order right now." });
   }
 }

@@ -64,7 +64,7 @@ const FREE_OVER_CENTS = 20000; // free US shipping over $200
 // One place both /api/shipping-quote and create-checkout-session use, so the
 // price we DISPLAY equals the price we CHARGE (server re-quotes; client amounts
 // are never trusted). Returns { source, weight_oz, subtotal_cents, options[] }.
-export async function quoteShipping(env, { cart, address, test = false }) {
+export async function quoteShipping(env, { cart, address }) {
   const lines = (Array.isArray(cart) ? cart : []).map(l => ({
     sku: `${l.product_id || l.productId}:${l.format === "box" ? "box" : "pack"}`,
     format: l.format === "box" ? "box" : "pack",
@@ -87,7 +87,6 @@ export async function quoteShipping(env, { cart, address, test = false }) {
   }
 
   const options = [];
-  if (test) options.push({ id: "test", label: "Test delivery — $0.00", amount_cents: 0 });
 
   if (subtotal >= FREE_OVER_CENTS) {
     options.push({ id: "free", label: "Free shipping (orders $200+)", amount_cents: 0 });

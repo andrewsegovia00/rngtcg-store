@@ -1,6 +1,7 @@
 import { productById, unitPrice, toCents, categoryShort, languageShort } from "../_lib/catalog.js";
 import { hasSupabase, supabaseRpc, supabaseFetch, maybeReleaseReservation } from "../_lib/supabase.js";
 import { quoteShipping } from "../_lib/shipping.js";
+import { fail } from "../_lib/respond.js";
 
 function cleanAddress(a = {}) {
   const s = v => (typeof v === "string" ? v.trim().slice(0, 120) : "");
@@ -81,10 +82,11 @@ async function createReservationIfConfigured(env, payload) {
 export async function onRequestPost(context) {
   const { request, env, waitUntil } = context;
   if (!env.STRIPE_SECRET_KEY) {
-    return json({
-      error: "Missing STRIPE_SECRET_KEY.",
-      message: "Add your Stripe test secret key in Cloudflare Pages environment variables or .dev.vars."
-    }, 501);
+    return fail(new Error("STRIPE_SECRET_KEY is not configured"), {
+      context: "create-checkout-session",
+      fallback: "Checkout is temporarily unavailable. Please try again later.",
+      status: 503
+    });
   }
 
   let payload;
@@ -118,10 +120,9 @@ export async function onRequestPost(context) {
     try {
       reservation = await createReservationIfConfigured(env, payload);
     } catch (error) {
-      return json({
-        error: error.message || "Could not reserve inventory.",
-        details: error.details || null
-      }, error.status || 400);
+      // Reservation errors at status < 500 are user-safe (e.g. "a product in your
+      // chest is no longer available"); anything else is logged and made generic.
+      return fail(error, { context: "reserve-inventory", fallback: "Could not reserve your items. Please try again." });
     }
     stripeLines = (reservation?.lines || []).map(l => ({
       name: `${l.title} — ${l.format === "box" ? "Booster Box" : "Booster Pack"}`,
@@ -138,7 +139,7 @@ export async function onRequestPost(context) {
     try {
       lines = normalizeCart(payload.cart);
     } catch (error) {
-      return json({ error: error.message }, 400);
+      return fail(error, { context: "normalize-cart", status: 400, fallback: "There's a problem with your cart. Please review it and try again." });
     }
     stripeLines = lines.map(line => ({
       name: `${line.product.name} — ${line.format === "box" ? "Booster Box" : "Booster Pack"}`,
@@ -167,7 +168,7 @@ export async function onRequestPost(context) {
   // Re-quote server-side — never trust the client's shipping amount.
   let shippingCents = 0, shippingLabel = "Shipping";
   try {
-    const quote = await quoteShipping(env, { cart: payload.cart, address, test: Boolean(payload.test) });
+    const quote = await quoteShipping(env, { cart: payload.cart, address });
     const chosen = quote.options.find(o => o.id === payload.shipping_id)
       || quote.options.slice().sort((a, b) => a.amount_cents - b.amount_cents)[0];
     if (chosen) { shippingCents = chosen.amount_cents; shippingLabel = chosen.label; }
@@ -263,7 +264,9 @@ export async function onRequestPost(context) {
   const data = await stripeResponse.json();
   if (!stripeResponse.ok) {
     await maybeReleaseReservation(env, orderId);
-    return json({ error: data.error?.message || "Stripe rejected the checkout session.", stripe_error: data.error || data }, stripeResponse.status);
+    // Log the full Stripe error for us; never surface it (or the raw object) to the buyer.
+    const stripeErr = new Error(`Stripe create-session ${stripeResponse.status}: ${JSON.stringify(data.error || data)}`);
+    return fail(stripeErr, { context: "stripe-create-session", generic: true, status: 502, fallback: "Payment could not be started. Please try again." });
   }
 
   if (orderId && hasSupabase(env)) {
@@ -274,7 +277,7 @@ export async function onRequestPost(context) {
       });
     } catch (error) {
       await maybeReleaseReservation(env, orderId);
-      return json({ error: error.message || "Could not attach Stripe session to order." }, error.status || 500);
+      return fail(error, { context: "attach-stripe-session", generic: true, fallback: "Could not finalize checkout. Please try again." });
     }
   }
 
