@@ -155,8 +155,10 @@ button,input,select{font:inherit}
   .chestcol{background:var(--color-bg);margin-inline:calc(-1 * var(--layout-gutter-sm));padding:var(--space-3) var(--layout-gutter-sm) var(--space-4)}
   /* keep the chest visual (it's a signature bit) but shrink it; total moves onto a
      smaller checkout button so the expanded chest stays compact */
-  .chest__drop{padding:var(--space-2)}
-  .pouch{transform:scale(.5);margin:-56px auto -58px}
+  /* .chestcol prefix raises specificity above the base .chest__drop/.pouch rules
+     that appear later in the file; transform-origin:top keeps the gap above tight */
+  .chestcol .chest__drop{padding:var(--space-1) var(--space-2) 0}
+  .chestcol .pouch{transform:scale(.46);transform-origin:top center;margin:0 auto -124px}
   .bounty{padding:var(--space-4) var(--space-5) var(--space-5)}
   .bounty__row{display:none}
   .cs-total{display:inline}
