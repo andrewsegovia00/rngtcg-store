@@ -108,7 +108,7 @@ button,input,select{font:inherit}
 .fly{position:fixed;z-index:60;width:40px;height:40px;border:var(--outline);border-radius:var(--radius-sm);display:grid;place-items:center;font-size:20px;color:#fff;pointer-events:none;box-shadow:var(--shadow-offset-sm)}
 
 /* modal */
-.overlay{position:fixed;inset:0;z-index:60;background:rgba(26,19,32,.45);display:none;align-items:center;justify-content:center;padding:var(--space-5)}.overlay.open{display:flex}.modal{width:100%;max-width:460px;background:var(--color-surface);border:var(--outline);border-radius:var(--radius-lg);box-shadow:var(--shadow-offset-lg);overflow:hidden}.modal__art{height:180px;display:grid;place-items:center;border-bottom:var(--outline);background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,.05)),var(--tone)}.modal__body{padding:var(--space-6)}.modal__set{font-family:var(--font-mono);font-size:var(--text-label-sm);letter-spacing:var(--tracking-wide);text-transform:uppercase;color:var(--color-text-muted)}.modal__name{font-family:var(--font-display);font-size:var(--text-display-md);line-height:1.05;margin:var(--space-1) 0 var(--space-4)}.modal__row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);margin-bottom:var(--space-5)}.modal__lab{font-family:var(--font-mono);font-size:var(--text-label);letter-spacing:.5px;text-transform:uppercase;color:var(--color-text-muted)}.modal__close{position:absolute;top:var(--space-4);right:var(--space-4);width:34px;height:34px;cursor:pointer;background:var(--color-surface);border:var(--outline);border-radius:var(--radius-pill);box-shadow:var(--shadow-offset-sm);font-size:18px;line-height:1}
+.overlay{position:fixed;inset:0;z-index:60;background:rgba(26,19,32,.45);display:none;align-items:center;justify-content:center;padding:var(--space-5)}.overlay.open{display:flex}.modal{width:100%;max-width:460px;background:var(--color-surface);border:var(--outline);border-radius:var(--radius-lg);box-shadow:var(--shadow-offset-lg);overflow:hidden}.modal__art{height:240px;display:grid;place-items:center;border-bottom:var(--outline);background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,.05)),var(--tone)}.modal__body{padding:var(--space-6)}.modal__set{font-family:var(--font-mono);font-size:var(--text-label-sm);letter-spacing:var(--tracking-wide);text-transform:uppercase;color:var(--color-text-muted)}.modal__name{font-family:var(--font-display);font-size:var(--text-display-md);line-height:1.05;margin:var(--space-1) 0 var(--space-4)}.modal__row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);margin-bottom:var(--space-5)}.modal__lab{font-family:var(--font-mono);font-size:var(--text-label);letter-spacing:.5px;text-transform:uppercase;color:var(--color-text-muted)}.modal__close{position:absolute;top:var(--space-4);right:var(--space-4);width:34px;height:34px;cursor:pointer;background:var(--color-surface);border:var(--outline);border-radius:var(--radius-pill);box-shadow:var(--shadow-offset-sm);font-size:18px;line-height:1}
 
 /* mobile sticky chest bar */
 .mini-cart-bar{display:none;position:fixed;left:var(--space-4);right:var(--space-4);bottom:var(--space-4);z-index:50;align-items:center;justify-content:space-between;gap:var(--space-3);padding:var(--space-3);background:var(--color-ink);color:#fff;border:var(--outline);border-radius:var(--radius-pill);box-shadow:var(--shadow-offset-lg)}.mini-cart-bar.is-visible{display:flex}.mini-cart-bar__meta{display:flex;flex-direction:column;line-height:1.05}.mini-cart-bar__meta span{font-family:var(--font-mono);font-size:var(--text-micro);font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--color-primary-soft)}.mini-cart-bar__meta strong{font-family:var(--font-display);font-size:20px;font-weight:400;color:#fff}.mini-cart-bar__btn{border:1.5px solid #fff;background:var(--color-primary);color:#fff;border-radius:var(--radius-pill);padding:10px 16px;font-family:var(--font-body);font-weight:700;box-shadow:2px 2px 0 #fff;cursor:pointer}
@@ -123,6 +123,9 @@ button,input,select{font:inherit}
 .add-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @keyframes cartbump{0%,100%{transform:scale(1)}35%{transform:scale(1.16)}}
 #headerCart.bump{animation:cartbump .42s var(--ease-bounce)}
+/* checkout button total: shown inline on mobile, hidden on desktop (Bounty row shows it there) */
+.cs-total{display:none}
+.checkout-sail .cs-total{font-family:var(--font-body);font-weight:700;font-size:var(--text-body);line-height:1.1;color:#fff}
 @keyframes chestflash{0%,100%{transform:translateX(0);background:var(--color-surface)}20%{transform:translateX(-5px);background:#d6f7e2}40%{transform:translateX(5px)}60%{transform:translateX(-3px);background:#d6f7e2}80%{transform:translateX(3px)}}
 @media(max-width:760px){
   .chestcol{order:-1;position:sticky;top:68px;z-index:20;margin-bottom:var(--space-5)}
@@ -131,10 +134,38 @@ button,input,select{font:inherit}
   .chest__chev{display:inline-block;margin-left:8px;font-size:16px;color:var(--color-primary);position:relative;top:-3px;transition:transform var(--dur-base)}
   .chest.is-open .chest__chev{transform:rotate(180deg)}
   .chest:not(.is-open) #bagInner{display:none}
-  .chest.is-open #bagInner{max-height:64vh;overflow:auto}
+  /* cap only the loot list so the meter stays on top and the checkout stays pinned at the bottom */
+  .chest.is-open .chest__scroll{max-height:34vh;overflow:auto}
   .chest.flash .chest__head{animation:chestflash .55s var(--ease-standard)}
 }
 @media(prefers-reduced-motion:reduce){#headerCart.bump,.chest.flash .chest__head{animation:none}}
+
+/* ===== Mobile storefront polish (filters fit, drag affordance, chest sizing) ===== */
+@media(max-width:760px){
+  /* status filter chips: shrink so ALL · NEW ARRIVALS · ON SALE · IN STOCK fit one row */
+  .filters{gap:5px;flex-wrap:nowrap}
+  .filters .chip{padding:5px 9px;font-size:10px;letter-spacing:.2px}
+  /* hide the horizontal scrollbar on the swipeable rails (mobile only — desktop wraps) */
+  .filter-pills,.filters{scrollbar-width:none}
+  .filter-pills::-webkit-scrollbar,.filters::-webkit-scrollbar{display:none;width:0;height:0}
+  /* bigger collapse chevron */
+  .chest__chev{font-size:22px;margin-left:10px;top:-2px}
+  /* opaque full-bleed backing so scrolling products don't peek around the chest,
+     plus a gap so the box isn't flush against the sticky header lip */
+  .chestcol{background:var(--color-bg);margin-inline:calc(-1 * var(--layout-gutter-sm));padding:var(--space-3) var(--layout-gutter-sm) var(--space-2)}
+  /* hide the decorative pouch on mobile (its "drag items here" doesn't apply to touch),
+     move the total onto a smaller checkout button — so the chest doesn't eat the screen */
+  .chest__drop{display:none}
+  .bounty{padding:var(--space-4) var(--space-5)}
+  .bounty__row{display:none}
+  .cs-total{display:inline}
+  .checkout-sail{padding:var(--space-3) var(--space-4)}
+  .checkout-pay-note{margin-top:var(--space-2);font-size:9px}
+  /* drag affordance: the whole card drags; no text/image selection highlight */
+  .card{cursor:grab}
+  .card:active{cursor:grabbing}
+  .card,.card *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+}
 
 /* ==========================================================================
    BLOCK 6 — Chest visual refresh

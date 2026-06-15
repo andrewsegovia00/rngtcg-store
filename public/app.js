@@ -67,11 +67,22 @@ function renderCatalogbar(){
       </div>
     </div>`;
 
+  // Update active state in place (don't rebuild the bar) so the horizontal scroll
+  // position of the pill rail is preserved — otherwise the selected pill scrolls
+  // out of view and it looks like the choice reverted to the first option.
   bar.querySelectorAll("[data-cat]").forEach(b => {
-    b.onclick = () => { activeCat = b.dataset.cat; renderAll(); };
+    b.onclick = () => {
+      activeCat = b.dataset.cat;
+      bar.querySelectorAll("[data-cat]").forEach(x => x.classList.toggle("is-active", x === b));
+      renderGrid();
+    };
   });
   bar.querySelectorAll("[data-lang]").forEach(b => {
-    b.onclick = () => { activeLanguage = b.dataset.lang; renderAll(); };
+    b.onclick = () => {
+      activeLanguage = b.dataset.lang;
+      bar.querySelectorAll("[data-lang]").forEach(x => x.classList.toggle("is-active", x === b));
+      renderGrid();
+    };
   });
 }
 
@@ -113,8 +124,8 @@ function renderGrid(){
     const lang = languageShort(p.language);
     const cat = categoryShort(p.category);
     return `
-    <article class="card ${out?'is-out':''}" data-id="${p.id}">
-      <div class="card__art" style="--tone:${p.tone}" draggable="${!out}" data-id="${p.id}" aria-label="${p.name}">
+    <article class="card ${out?'is-out':''}" data-id="${p.id}" draggable="${!out}" aria-label="${p.name}">
+      <div class="card__art" style="--tone:${p.tone}" draggable="false" data-id="${p.id}">
         ${p.badge ? `<span class="card__badge is-${String(p.badge).toLowerCase()}">${p.badge}</span>` : ""}
         ${p.sale ? `<span class="card__sale">-${p.sale}%</span>` : ""}
         ${out ? `<span class="sold-stamp">Sold<br>out</span>` : ""}
@@ -153,14 +164,14 @@ function renderGrid(){
     b.onclick = e => { e.stopPropagation(); cardFormat[b.parentElement.dataset.id] = b.dataset.fmt; renderGrid(); });
   grid.querySelectorAll("[data-add]").forEach(b =>
     b.onclick = () => { if (b.disabled) return; addToCart(b.dataset.add, cardFormat[b.dataset.add]||defaultFormat(productById(b.dataset.add)), 1, b); });
-  grid.querySelectorAll(".card__art[draggable='true']").forEach(art => {
-    art.addEventListener("dragstart", e => {
-      const id = art.dataset.id;
+  grid.querySelectorAll(".card[draggable='true']").forEach(card => {
+    card.addEventListener("dragstart", e => {
+      const id = card.dataset.id;
       e.dataTransfer.setData("text/plain", JSON.stringify({productId:id, format:cardFormat[id]||defaultFormat(productById(id)), quantity:1}));
       e.dataTransfer.effectAllowed = "copy";
-      art.closest(".card").classList.add("is-dragging");
+      card.classList.add("is-dragging");
     });
-    art.addEventListener("dragend", () => art.closest(".card").classList.remove("is-dragging"));
+    card.addEventListener("dragend", () => card.classList.remove("is-dragging"));
   });
   grid.querySelectorAll(".card").forEach(card =>
     card.addEventListener("dblclick", () => openModal(card.dataset.id)));
@@ -269,7 +280,7 @@ function renderBag(){
     </div>
     <div class="bounty">
       <div class="bounty__row"><span>Bounty</span><strong>${subtotalText}</strong></div>
-      <button class="checkout-sail" id="checkoutBtn">Set sail · Checkout <span>→</span></button>
+      <button class="checkout-sail" id="checkoutBtn">Set sail · Checkout<span class="cs-total"> · ${subtotalText}</span> <span class="cs-arrow">→</span></button>
       <div class="checkout-pay-note">Pay with <strong>stripe</strong> | Apple Pay</div>
     </div>`;
 
