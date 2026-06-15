@@ -156,9 +156,12 @@ button,input,select{font:inherit}
   /* keep the chest visual (it's a signature bit) but shrink it; total moves onto a
      smaller checkout button so the expanded chest stays compact */
   /* .chestcol prefix raises specificity above the base .chest__drop/.pouch rules
-     that appear later in the file; transform-origin:top keeps the gap above tight */
-  .chestcol .chest__drop{padding:var(--space-1) var(--space-2) 0}
-  .chestcol .pouch{transform:scale(.46);transform-origin:top center;margin:0 auto -124px}
+     that appear later in the file. zoom (not transform) shrinks the pouch's actual
+     layout box, so following content — the loot list OR the empty-state copy — flows
+     naturally instead of being pulled up behind the pouch. */
+  .chestcol .chest__head{padding-top:var(--space-3);padding-bottom:var(--space-3)}
+  .chestcol .chest__drop{padding:var(--space-2)}
+  .chestcol .pouch{zoom:.5;margin:0 auto}
   .bounty{padding:var(--space-4) var(--space-5) var(--space-5)}
   .bounty__row{display:none}
   .cs-total{display:inline}
