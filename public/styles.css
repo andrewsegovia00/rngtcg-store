@@ -135,7 +135,7 @@ button,input,select{font:inherit}
   .chest.is-open .chest__chev{transform:rotate(180deg)}
   .chest:not(.is-open) #bagInner{display:none}
   /* cap only the loot list so the meter stays on top and the checkout stays pinned at the bottom */
-  .chest.is-open .chest__scroll{max-height:34vh;overflow:auto}
+  .chest.is-open .chest__scroll{max-height:30vh;overflow:auto}
   .chest.flash .chest__head{animation:chestflash .55s var(--ease-standard)}
 }
 @media(prefers-reduced-motion:reduce){#headerCart.bump,.chest.flash .chest__head{animation:none}}
@@ -152,11 +152,12 @@ button,input,select{font:inherit}
   .chest__chev{font-size:22px;margin-left:10px;top:-2px}
   /* opaque full-bleed backing so scrolling products don't peek around the chest,
      plus a gap so the box isn't flush against the sticky header lip */
-  .chestcol{background:var(--color-bg);margin-inline:calc(-1 * var(--layout-gutter-sm));padding:var(--space-3) var(--layout-gutter-sm) var(--space-2)}
-  /* hide the decorative pouch on mobile (its "drag items here" doesn't apply to touch),
-     move the total onto a smaller checkout button — so the chest doesn't eat the screen */
-  .chest__drop{display:none}
-  .bounty{padding:var(--space-4) var(--space-5)}
+  .chestcol{background:var(--color-bg);margin-inline:calc(-1 * var(--layout-gutter-sm));padding:var(--space-3) var(--layout-gutter-sm) var(--space-4)}
+  /* keep the chest visual (it's a signature bit) but shrink it; total moves onto a
+     smaller checkout button so the expanded chest stays compact */
+  .chest__drop{padding:var(--space-2)}
+  .pouch{transform:scale(.5);margin:-56px auto -58px}
+  .bounty{padding:var(--space-4) var(--space-5) var(--space-5)}
   .bounty__row{display:none}
   .cs-total{display:inline}
   .checkout-sail{padding:var(--space-3) var(--space-4)}
