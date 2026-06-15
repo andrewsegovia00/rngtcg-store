@@ -2,7 +2,7 @@
    R&G TCG — SHOP INTERACTION
    Block 7: Supabase-backed inventory overlay + existing chest/cart UX.
    ============================================================================ */
-let activeCat = "pokemon";
+let activeCat = "all";
 let activeLanguage = "all";
 let activeFilter = "all";
 let search = "";

@@ -115,7 +115,7 @@ button,input,select{font:inherit}
 
 @media(max-width:1120px){.main{grid-template-columns:1fr}.chestcol{position:static;order:2}.chest{max-height:none}.chest__scroll{overflow:visible}.product-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.filter-group--language{margin-left:0}}
 @media(max-width:760px){.header__inner,.catalogbar__inner,.main{padding-inline:var(--layout-gutter-sm)}.nav,.header__search{display:none}.catalogbar__inner{gap:var(--space-5)}.filter-group{width:100%}.filter-pills{overflow:auto;flex-wrap:nowrap;padding-bottom:2px}.filter-pill{white-space:nowrap}.gridcol__head{align-items:flex-start}.product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-4)}.chest__title{font-size:28px}.chest-box{height:190px}.loot-line{grid-template-columns:auto minmax(0,1fr) auto}.loot-line__price{grid-column:2}.loot-line__rm{grid-column:3;grid-row:1}.header__cart-total{display:none}.mini-cart-bar{left:var(--space-3);right:var(--space-3);bottom:var(--space-3)}}
-@media(max-width:480px){.product-grid{grid-template-columns:1fr}.gridcol__title{font-size:42px}.filters{width:100%;overflow:auto;flex-wrap:nowrap}.chip{white-space:nowrap}.chest__head{align-items:center}.bounty__row strong{font-size:34px}}
+@media(max-width:480px){.product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3)}.gridcol__title{font-size:42px}.filters{width:100%;overflow:auto;flex-wrap:nowrap}.chip{white-space:nowrap}.chest__head{align-items:center}.bounty__row strong{font-size:34px}}
 
 /* ==========================================================================
    BLOCK 6 — Chest visual refresh

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>R&G TCG — Sealed Pokémon, One Piece, Yu-Gi-Oh! & MTG Booster Boxes</title>
+<meta name="description" content="Shop sealed TCG product across Pokémon, One Piece, Yu-Gi-Oh!, Magic & Lorcana — English and Japanese booster boxes and packs, hand-checked and shipped in 24h. Free US shipping over $200." />
+<link rel="canonical" href="https://rngtcg.com/shop.html" />
+<meta name="theme-color" content="#6b3bd6" />
+
+<!-- Open Graph (link previews on Discord/X/IG bios — your livestream traffic) -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="R&G TCG" />
+<meta property="og:title" content="R&G TCG — Sealed TCG Product, Hand-Checked" />
+<meta property="og:description" content="Pokémon, One Piece, Yu-Gi-Oh!, Magic & Lorcana sealed product in English and Japanese. Ships in 24h. Free US shipping over $200." />
+<meta property="og:url" content="https://rngtcg.com/shop.html" />
+<meta property="og:image" content="https://rngtcg.com/og-card.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="R&G TCG — Sealed TCG Product, Hand-Checked" />
+<meta name="twitter:description" content="Sealed booster boxes & packs across 5 games, EN/JP. Ships in 24h." />
+<meta name="twitter:image" content="https://rngtcg.com/og-card.png" />
+
+<!-- Structured data: tells Google this is a store -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "OnlineStore",
+  "name": "R&G TCG",
+  "url": "https://rngtcg.com/",
+  "description": "Sealed trading card game product — Pokémon, One Piece, Yu-Gi-Oh!, Magic: The Gathering, and Lorcana — in English and Japanese.",
+  "areaServed": "US",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://rngtcg.com/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="announce">Free US shipping over $200</div>
+
+<header class="header">
+  <div class="header__inner">
+    <a class="logo" href="index.html"><span class="logo__mark"><svg viewBox="0 0 40 40"><text x="20" y="27" text-anchor="middle" font-family="Bagel Fat One,sans-serif" font-size="15" fill="#fff">R&amp;G</text></svg></span><span class="logo__name">R&amp;G TCG</span></a>
+    <nav class="nav"><a href="shop.html" class="is-active">Shop</a><a href="index.html#community">Community</a><a href="admin.html" id="adminNav" hidden>Admin</a></nav>
+    
+    <div class="header__actions">
+      <a class="icon-btn" href="https://discord.gg/JaaQuMrcTa" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4.4A19 19 0 0 0 15.3 3l-.3.5a14 14 0 0 1 4 1.9 13 13 0 0 0-11.4 0 14 14 0 0 1 4-1.9L11.3 3A19 19 0 0 0 6.6 4.4 19.7 19.7 0 0 0 3 18.2 19 19 0 0 0 8.8 21l.6-.9a12 12 0 0 1-1.9-.9l.5-.3a13 13 0 0 0 11 0l.5.3a12 12 0 0 1-1.9.9l.6.9A19 19 0 0 0 24 18.2 19.6 19.6 0 0 0 20 4.4ZM9.5 15.3c-.9 0-1.6-.8-1.6-1.8s.7-1.8 1.6-1.8 1.6.8 1.6 1.8-.7 1.8-1.6 1.8Zm5 0c-.9 0-1.6-.8-1.6-1.8s.7-1.8 1.6-1.8 1.6.8 1.6 1.8-.7 1.8-1.6 1.8Z"/></svg>Discord</a>
+      <a class="icon-btn" href="#" id="headerCart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 7h13l-1.4 9.5a2 2 0 0 1-2 1.7H9.4a2 2 0 0 1-2-1.7L6 4H3"/><circle cx="9" cy="21" r="1"/><circle cx="17" cy="21" r="1"/></svg><span class="header__cart-label">Chest <strong class="header__cart-total" id="headerCartTotal">$0</strong></span><span class="cart-count" id="headerCount">0</span></a>
+    </div>
+  </div>
+</header>
+
+<div class="catalogbar" aria-label="Catalog filters">
+  <div class="catalogbar__inner" id="catalogbar"></div>
+</div>
+
+<main class="main">
+  <section class="gridcol">
+    <div class="gridcol__head">
+      <div class="gridcol__headings">
+        <h1 class="gridcol__title" id="catTitle">All Games</h1>
+        <p class="gridcol__sub">Sealed product · <strong>Drag to chest</strong> or tap Add. Double-click for box / pack + quantity.</p>
+      </div>
+      <div class="filters" id="filters">
+        <button class="chip is-on" data-f="all">All</button>
+        <button class="chip" data-f="new">New arrivals</button>
+        <button class="chip" data-f="sale">On sale</button>
+        <button class="chip" data-f="instock">In stock</button>
+      </div>
+    </div>
+    <div class="result-count" id="resultCount">0 products</div>
+    <div class="product-grid" id="grid"></div>
+  </section>
+
+  <aside class="chestcol" aria-label="Cart">
+    <div class="chest" id="bag">
+      <div class="chest__head">
+        <div>
+          <div class="chest__kicker">Your loot</div>
+          <div class="chest__title">The Chest</div>
+        </div>
+        <div class="chest__count"><strong id="bagCountNum">0</strong><span id="bagCount">items</span></div>
+      </div>
+      <div id="bagInner"></div>
+    </div>
+  </aside>
+</main>
+
+
+<!-- product modal -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal" style="position:relative"></div>
+</div>
+
+<script src="catalog.js"></script>
+<script src="app.js"></script>
+<script src="newsletter.js"></script>
+</body>
+</html>
