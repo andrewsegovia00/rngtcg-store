@@ -301,6 +301,9 @@ function addToCart(id, format="pack", qty=1, fromEl){
   pulseBag();
   if (fromEl) flyToBag(fromEl, p);
   renderBag();
+  bumpHeaderCart();
+  flashChest();
+  showAddToast();
 }
 function updateQty(i, q){
   if(q<=0){ cart.splice(i,1); }
@@ -314,6 +317,26 @@ function updateQty(i, q){
   renderBag();
 }
 function pulseBag(){ const b=$("#bag"); b.classList.remove("pulse"); void b.offsetWidth; b.classList.add("pulse"); }
+function bumpHeaderCart(){ const h=$("#headerCart"); if(!h) return; h.classList.remove("bump"); void h.offsetWidth; h.classList.add("bump"); }
+function flashChest(){ const b=$("#bag"); if(!b) return; b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); }
+let _addToastEl;
+function showAddToast(){
+  if(!_addToastEl){ _addToastEl = document.createElement("div"); _addToastEl.className = "add-toast"; document.body.appendChild(_addToastEl); }
+  _addToastEl.textContent = "✓ Added to chest";
+  _addToastEl.classList.remove("show"); void _addToastEl.offsetWidth; _addToastEl.classList.add("show");
+  clearTimeout(_addToastEl._t); _addToastEl._t = setTimeout(() => _addToastEl.classList.remove("show"), 1100);
+}
+// Mobile: the chest is collapsed by default — tapping its head expands the loot.
+(function setupChestToggle(){
+  const head = $("#chestHead");
+  if(!head) return;
+  const toggle = () => {
+    const open = $("#bag").classList.toggle("is-open");
+    head.setAttribute("aria-expanded", open ? "true" : "false");
+  };
+  head.addEventListener("click", toggle);
+  head.addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); toggle(); } });
+})();
 function flyToBag(fromEl, p){
   const start = fromEl.getBoundingClientRect();
   const bag = $("#bag").getBoundingClientRect();

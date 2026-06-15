@@ -113,9 +113,28 @@ button,input,select{font:inherit}
 /* mobile sticky chest bar */
 .mini-cart-bar{display:none;position:fixed;left:var(--space-4);right:var(--space-4);bottom:var(--space-4);z-index:50;align-items:center;justify-content:space-between;gap:var(--space-3);padding:var(--space-3);background:var(--color-ink);color:#fff;border:var(--outline);border-radius:var(--radius-pill);box-shadow:var(--shadow-offset-lg)}.mini-cart-bar.is-visible{display:flex}.mini-cart-bar__meta{display:flex;flex-direction:column;line-height:1.05}.mini-cart-bar__meta span{font-family:var(--font-mono);font-size:var(--text-micro);font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--color-primary-soft)}.mini-cart-bar__meta strong{font-family:var(--font-display);font-size:20px;font-weight:400;color:#fff}.mini-cart-bar__btn{border:1.5px solid #fff;background:var(--color-primary);color:#fff;border-radius:var(--radius-pill);padding:10px 16px;font-family:var(--font-body);font-weight:700;box-shadow:2px 2px 0 #fff;cursor:pointer}
 
-@media(max-width:1120px){.main{grid-template-columns:1fr}.chestcol{position:static;order:2}.chest{max-height:none}.chest__scroll{overflow:visible}.product-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.filter-group--language{margin-left:0}}
+@media(max-width:1120px){.main{grid-template-columns:minmax(0,1fr)}.chestcol{position:static;order:2}.chest{max-height:none}.chest__scroll{overflow:visible}.product-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.filter-group--language{margin-left:0}}
 @media(max-width:760px){.header__inner,.catalogbar__inner,.main{padding-inline:var(--layout-gutter-sm)}.nav,.header__search{display:none}.catalogbar__inner{gap:var(--space-5)}.filter-group{width:100%}.filter-pills{overflow:auto;flex-wrap:nowrap;padding-bottom:2px}.filter-pill{white-space:nowrap}.gridcol__head{align-items:flex-start}.product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-4)}.chest__title{font-size:28px}.chest-box{height:190px}.loot-line{grid-template-columns:auto minmax(0,1fr) auto}.loot-line__price{grid-column:2}.loot-line__rm{grid-column:3;grid-row:1}.header__cart-total{display:none}.mini-cart-bar{left:var(--space-3);right:var(--space-3);bottom:var(--space-3)}}
 @media(max-width:480px){.product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3)}.gridcol__title{font-size:42px}.filters{width:100%;overflow:auto;flex-wrap:nowrap}.chip{white-space:nowrap}.chest__head{align-items:center}.bounty__row strong{font-size:34px}}
+
+/* ---- Add-to-chest feedback (toast + header bump) + mobile collapsible chest ---- */
+.chest__chev{display:none}
+.add-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(10px);z-index:90;background:var(--color-ink);color:#fff;font-family:var(--font-mono);font-size:var(--text-label);font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:10px 18px;border:var(--outline);border-radius:var(--radius-pill);box-shadow:var(--shadow-offset-md);opacity:0;pointer-events:none;transition:opacity .18s var(--ease-standard),transform .18s var(--ease-standard)}
+.add-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@keyframes cartbump{0%,100%{transform:scale(1)}35%{transform:scale(1.16)}}
+#headerCart.bump{animation:cartbump .42s var(--ease-bounce)}
+@keyframes chestflash{0%,100%{transform:translateX(0);background:var(--color-surface)}20%{transform:translateX(-5px);background:#d6f7e2}40%{transform:translateX(5px)}60%{transform:translateX(-3px);background:#d6f7e2}80%{transform:translateX(3px)}}
+@media(max-width:760px){
+  .chestcol{order:-1;position:sticky;top:68px;z-index:20;margin-bottom:var(--space-5)}
+  .chest{box-shadow:var(--shadow-offset-md)}
+  .chest__head{cursor:pointer;user-select:none}
+  .chest__chev{display:inline-block;margin-left:8px;font-size:16px;color:var(--color-primary);position:relative;top:-3px;transition:transform var(--dur-base)}
+  .chest.is-open .chest__chev{transform:rotate(180deg)}
+  .chest:not(.is-open) #bagInner{display:none}
+  .chest.is-open #bagInner{max-height:64vh;overflow:auto}
+  .chest.flash .chest__head{animation:chestflash .55s var(--ease-standard)}
+}
+@media(prefers-reduced-motion:reduce){#headerCart.bump,.chest.flash .chest__head{animation:none}}
 
 /* ==========================================================================
    BLOCK 6 — Chest visual refresh
