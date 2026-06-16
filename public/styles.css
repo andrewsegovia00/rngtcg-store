@@ -76,7 +76,11 @@ button,input,select{font:inherit}
 .news-pop__kicker{font-family:var(--font-mono);font-size:var(--text-label);font-weight:700;letter-spacing:var(--tracking-wider);text-transform:uppercase;color:var(--color-primary-strong);margin-bottom:var(--space-2)}
 .news-pop__title{font-family:var(--font-display);font-size:30px;line-height:1.02;margin-bottom:var(--space-2)}
 .news-pop__sub{font-size:var(--text-body-sm);color:var(--color-text-muted);margin-bottom:var(--space-5)}
-.news-pop__form{display:flex;gap:var(--space-2)}
+.news-pop__form{display:flex;gap:var(--space-2);flex-wrap:wrap}
+/* Turnstile (interaction-only) widget: own line in the popup, collapse when empty. */
+.news-pop__turnstile{flex-basis:100%}
+.news-pop__turnstile:empty,.turnstile-box:empty{display:none}
+.turnstile-box{margin:var(--space-3) 0}
 .news-pop__form input{flex:1;min-width:0;border:var(--outline);border-radius:var(--radius-pill);padding:var(--space-3) var(--space-4);background:var(--color-surface-alt);outline:none}
 .news-pop__form button{cursor:pointer;border:var(--outline);border-radius:var(--radius-pill);background:var(--color-primary);color:#fff;font-family:var(--font-body);font-weight:700;padding:var(--space-3) var(--space-4);box-shadow:var(--shadow-offset-sm);white-space:nowrap}
 .news-pop__form button:hover{background:var(--color-primary-strong)}

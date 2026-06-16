@@ -166,15 +166,17 @@ async function startStripeCheckout(){
   }
   setCheckoutState("loading", "Creating secure Stripe checkout…");
   const newsletter = $("#newsletterOptIn")?.checked ?? false;
+  const turnstile_token = turnstileWidget ? turnstileWidget.getToken() : "";
 
   try {
     const response = await fetch("/api/create-checkout-session", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ cart, email, tiktok_username: tiktok, newsletter, address, shipping_id: chosenShipping.id })
+      body: JSON.stringify({ cart, email, tiktok_username: tiktok, newsletter, address, shipping_id: chosenShipping.id, turnstile_token })
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.url) {
+      turnstileWidget?.reset();
       const base = data.error || "Couldn't start checkout. Please try again.";
       throw new Error(data.ref ? `${base} (ref: ${data.ref})` : base);
     }
@@ -191,6 +193,12 @@ async function startStripeCheckout(){
 });
 $("#getRatesBtn")?.addEventListener("click", fetchRates);
 $("#placeOrder").addEventListener("click", startStripeCheckout);
+
+// Bot protection (no-op until a Turnstile site key is configured).
+let turnstileWidget = null;
+if (typeof mountTurnstile === "function") {
+  mountTurnstile($("#turnstileBox")).then(w => { turnstileWidget = w; });
+}
 
 if (new URLSearchParams(location.search).get("checkout") === "cancelled") {
   setCheckoutState("error", "Checkout was cancelled. Your chest is still saved and the reservation was released.");

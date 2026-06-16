@@ -21,6 +21,7 @@
         <p class="news-pop__sub">Drop your email for a one-time code — plus first dibs when drops go live.</p>
         <form class="news-pop__form">
           <input type="email" name="email" placeholder="you@email.com" autocomplete="email" required />
+          <div class="news-pop__turnstile"></div>
           <button type="submit">Get my code</button>
         </form>
         <p class="news-pop__msg" role="status" aria-live="polite"></p>
@@ -33,6 +34,12 @@
     wrap.querySelector(".news-pop__skip").onclick = close;
     wrap.addEventListener("click", e => { if (e.target === wrap) close(); });
 
+    // Bot protection (no-op until a Turnstile site key is configured).
+    let turnstileWidget = null;
+    if (typeof mountTurnstile === "function") {
+      mountTurnstile(wrap.querySelector(".news-pop__turnstile")).then(w => { turnstileWidget = w; });
+    }
+
     const form = wrap.querySelector(".news-pop__form");
     const msg = wrap.querySelector(".news-pop__msg");
     form.addEventListener("submit", async e => {
@@ -44,10 +51,10 @@
         const res = await fetch("/api/newsletter-signup", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ email, source: "popup" })
+          body: JSON.stringify({ email, source: "popup", turnstile_token: turnstileWidget ? turnstileWidget.getToken() : "" })
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || "Something went wrong.");
+        if (!res.ok) { turnstileWidget?.reset(); throw new Error(data.error || "Something went wrong."); }
         // Already signed up with this email — keep the form open so they can
         // try a different address (one welcome code per email).
         if (data.already) {

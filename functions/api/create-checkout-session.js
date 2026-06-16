@@ -1,6 +1,7 @@
 import { productById, unitPrice, toCents, categoryShort, languageShort } from "../_lib/catalog.js";
 import { hasSupabase, supabaseRpc, supabaseFetch, maybeReleaseReservation } from "../_lib/supabase.js";
 import { quoteShipping } from "../_lib/shipping.js";
+import { verifyTurnstile, clientIp } from "../_lib/turnstile.js";
 import { fail } from "../_lib/respond.js";
 
 function cleanAddress(a = {}) {
@@ -95,6 +96,11 @@ export async function onRequestPost(context) {
   } catch (_) {
     return json({ error: "Invalid JSON body." }, 400);
   }
+
+  // Bot check (skipped automatically when Turnstile isn't configured). Done
+  // BEFORE any reservation so a bot can't hold inventory by spamming checkout.
+  const ts = await verifyTurnstile(env, payload.turnstile_token, clientIp(request));
+  if (!ts.success) return json({ error: "Please complete the verification and try again." }, 400);
 
   const supabaseEnabled = hasSupabase(env);
 

@@ -14,6 +14,7 @@ import { hasSupabase, supabaseFetch, supabaseRpc } from "../_lib/supabase.js";
 import { hasStripe } from "../_lib/stripe.js";
 import { createSingleUseCoupon } from "../_lib/coupons.js";
 import { hasResend, sendWelcomeEmail } from "../_lib/email.js";
+import { verifyTurnstile, clientIp } from "../_lib/turnstile.js";
 
 const WELCOME_PERCENT = 10;
 const isEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
@@ -21,6 +22,11 @@ const isEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 export async function onRequestPost({ request, env }) {
   let payload = {};
   try { payload = await request.json(); } catch (_) { return json({ error: "Invalid JSON body." }, 400); }
+
+  // Bot check (skipped automatically when Turnstile isn't configured) — stops
+  // throwaway-email coupon farming and signup spam.
+  const ts = await verifyTurnstile(env, payload.turnstile_token, clientIp(request));
+  if (!ts.success) return json({ error: "Please complete the verification and try again." }, 400);
 
   const email = String(payload.email || "").trim().toLowerCase();
   if (!isEmail(email)) return json({ error: "Enter a valid email." }, 400);

@@ -57,6 +57,8 @@ Pages project → **Settings** → **Variables and Secrets** → **Production**.
 | `SHIPPO_API_KEY` | live Shippo token | Step 5. |
 | `SHIP_FROM_NAME / _STREET1 / _CITY / _STATE / _ZIP / _COUNTRY / _PHONE` | your real fulfillment origin | Rates depend on it. |
 | `GOOGLE_MAPS_API_KEY` | `AIza…` | Browser-safe; referrer-lock it (Step 7). |
+| `TURNSTILE_SITE_KEY` | `0x4AAA…` | Browser-safe Turnstile **site** key (Step 7.5). Blank = no bot check. |
+| `TURNSTILE_SECRET_KEY` | `0x4AAA…` | Turnstile **secret** (server-side siteverify). Mark **Secret**. Blank = checkout/newsletter skip the bot check. |
 | `RESEND_LOGO_URL` / `RESEND_HERO_GIF_URL` | optional asset URLs | Blank = built-in defaults. |
 
 > Tip: copy your working `.dev.vars` values over, swapping the **test** keys for **live** ones.
@@ -123,6 +125,19 @@ Google Cloud Console → **APIs & Services**:
 1. Credentials → your key → **Application restrictions: HTTP referrers** → add `https://rngtcg.com/*` (and `https://www.rngtcg.com/*`).
 2. **API restrictions:** allow only **Maps JavaScript API** + **Places API (New)**.
 3. Quotas → set a hard **per-day cap** on both APIs; Billing → **Budgets & alerts** → add a budget + email alert. This is the only hard guarantee against overage.
+
+---
+
+## Step 7.5 — Abuse guardrails (you) 🟡
+
+Three layers; the first two are zero-code dashboard toggles, the third is already wired in code (just needs keys).
+
+1. **Bot Fight Mode** — `rngtcg.com` zone → **Security → Bots → Bot Fight Mode: On**. Free.
+2. **Rate limiting** — **Security → WAF → Rate limiting rules → Create:** when URI path starts with `/api/` → more than **20 requests / 1 min** per IP → **Managed Challenge** (or Block). Kills floods and the stock-reservation troll (each `/api/create-checkout-session` holds inventory for 30 min).
+3. **Turnstile (already integrated)** — invisible bot check on the checkout button + newsletter popup, verified server-side inside the Functions (no separate Worker). To activate:
+   - Cloudflare dashboard → **Turnstile → Add widget** → name `R&G TCG`, mode **Managed**, hostnames `rngtcg.com` + `rngtcg-store.pages.dev` (+ `localhost` for local testing).
+   - Copy the **Site key** → `TURNSTILE_SITE_KEY` and the **Secret key** → `TURNSTILE_SECRET_KEY` (Step 2 vars) → redeploy.
+   - Until both are set, the widget doesn't render and the server skips verification — nothing breaks. The moment they're set, `/api/create-checkout-session` and `/api/newsletter-signup` reject requests without a valid token.
 
 ---
 
