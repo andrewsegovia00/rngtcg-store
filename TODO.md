@@ -12,12 +12,27 @@ Living backlog for post-launch work. Newest priorities up top.
 
 ## In progress
 - [ ] **Stripe protective measures** — Radar fraud rules + 3D Secure.
-  - [x] Code: `billing_address_collection=required` (enables AVS), and
-    `request_three_d_secure` driven by `STRIPE_3DS_MODE` env var
-    (defaults to `any` = 3DS on every card; set `automatic` to dial back).
-  - [ ] Dashboard (Stripe): turn on Radar, add rules (block/review by risk
-    score, request 3DS on elevated risk, card/email/IP blocklists, velocity
-    limits). Owner action — see checklist in chat.
+  - [x] Code (FREE — works on any Radar tier): `billing_address_collection=required`
+    (enables AVS), and forced 3D Secure via `request_three_d_secure`
+    (defaults to `any` = 3DS on every card; set `STRIPE_3DS_MODE=automatic` to
+    dial back). 3DS shifts most fraud-chargeback liability to the issuer.
+
+  ### Stripe Radar — free vs. paid (owner action in Stripe Dashboard)
+  - **Free (standard Radar, already on):** ML fraud scoring on every payment +
+    automatic blocking of the highest-risk charges. Nothing to enable.
+    - [ ] Confirm Settings → Radar → "Block payments with high risk" is on.
+    - [ ] Settings → Customer emails → enable receipts.
+  - **Requires Radar for Fraud Teams (+$0.02 per successful charge):** custom
+    rules + lists. Defer until volume/chargebacks justify it. Confirm current
+    price at stripe.com/radar/pricing.
+    - [ ] Block if `:risk_level: = 'highest'`
+    - [ ] Request 3DS if `:risk_level: = 'elevated'`
+    - [ ] Block if `:cvc_check: = 'fail'` / `:avs_zip_check: = 'fail'`
+    - [ ] Review if `:card_country: != :ip_country:`
+    - [ ] Velocity: block >~3 cards per IP / 24h
+    - [ ] Card / email / IP blocklists
+  - **Recommendation:** ship on the free tier now; upgrade to Fraud Teams only
+    once real fraud patterns appear.
 
 ## Backlog
 - [ ] **Box / treasure SVG update** — refresh the chest/treasure artwork used in
