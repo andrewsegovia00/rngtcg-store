@@ -9,7 +9,11 @@
 export async function onRequestGet({ env }) {
   return new Response(JSON.stringify({
     maps_key: env.GOOGLE_MAPS_API_KEY || "",
-    turnstile_key: env.TURNSTILE_SITE_KEY || ""
+    turnstile_key: env.TURNSTILE_SITE_KEY || "",
+    // Browser-safe Supabase config for the admin login (anon key is public by
+    // design; the server-side email allowlist does the real gating).
+    supabase_url: env.SUPABASE_URL || "",
+    supabase_anon_key: env.SUPABASE_ANON_KEY || ""
   }), {
     status: 200,
     headers: { "content-type": "application/json; charset=utf-8", "cache-control": "max-age=300" }

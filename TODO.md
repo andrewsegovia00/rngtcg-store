@@ -34,9 +34,16 @@ Living backlog for post-launch work. Newest priorities up top.
   - **Recommendation:** ship on the free tier now; upgrade to Fraud Teams only
     once real fraud patterns appear.
 
+## Done (cont.)
+- [x] **Mimic chest visual** — ported from the owner's preview: lid (back) +
+  slabs erupting from the mouth + body (front); lid drops shut when empty,
+  pulses when loot is added, cap 5 slabs + "+N". Scales to its column via a
+  fit transform. (`app.js` renderChestVisual/fitMimic, `styles.css` .mimic,
+  `public/assets/mimic/`). Note: full re-render means the lid open/close
+  doesn't tween (it snaps to state) — can be made to animate by persisting the
+  element if desired.
+
 ## Backlog
-- [ ] **Box / treasure SVG update** — refresh the chest/treasure artwork used in
-  the shop + chest UI. (Details TBD — what new look/asset do we want?)
 - [ ] **Limit / cap Google Maps API usage** — referrer-lock the key + hard
   per-day quota caps in Google Cloud Console (Step 7 of GO_LIVE.md).
 - [ ] **USPS-only shipping + require tracking number** — restrict shipping
@@ -45,6 +52,27 @@ Living backlog for post-launch work. Newest priorities up top.
 - [ ] **PayPal as a payment option** — note: US Stripe Checkout does not offer
   PayPal, so this needs a separate integration path. Decide approach before
   building.
-- [ ] **Admin login gating** — failed login should return a blank page / bounce
-  back to the admin login instead of exposing the dashboard. Pair with
-  Cloudflare Access (Step 6b of GO_LIVE.md) for defense in depth.
+- [x] **Supabase admin auth — Google sign-in (all pages + all endpoints)** —
+  admins sign in with **Google** via Supabase OAuth. Server guard
+  (`functions/_lib/admin.js`, used by all 13 admin endpoints) verifies the
+  Supabase access token AND an email allowlist; `ADMIN_TOKEN` stays as a
+  break-glass fallback. Shared `admin-auth.js` injects a "Continue with Google"
+  gate on every admin page; the UI only unlocks after the server confirms the
+  signed-in Google account is on the allowlist (non-admins never see the
+  dashboard). Degrades gracefully (gate shows "not configured" until keys set).
+
+  **Owner setup required to turn it on:**
+  1. Google Cloud Console → APIs & Services → Credentials → create an **OAuth
+     2.0 Client ID** (type: Web application). Authorized redirect URI:
+     `https://<your-project-ref>.supabase.co/auth/v1/callback`.
+  2. Supabase → Authentication → Providers → **Google** → paste the Client ID +
+     Secret, enable it.
+  3. Supabase → Authentication → URL Configuration → add your admin URLs to
+     **Redirect URLs** (e.g. `https://rngtcg.com/**`) and set the Site URL.
+  4. Cloudflare Pages env (Production):
+     - `SUPABASE_ANON_KEY` = your project's anon / publishable key
+     - `ADMIN_EMAILS` = the Google account email(s) allowed, comma-separated
+     - (`SUPABASE_URL` already set; `ADMIN_TOKEN` kept as break-glass)
+  5. Redeploy. Until then, the old `ADMIN_TOKEN` still works.
+- [ ] **Cloudflare Access** (Step 6b of GO_LIVE.md) — optional hard edge lock in
+  front of the admin URLs (defense in depth on top of the app-level auth).

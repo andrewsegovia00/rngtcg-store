@@ -204,27 +204,38 @@ function totals(){
 }
 
 
-function renderChestVisual(items){
-  // Pouch chest (from chest-pouch-preview): up to 5 category slabs + a "+N" overflow slab.
-  const visible = cart.slice(0,5).map(l => {
+// The mimic graphic is fixed at a 322px design and scaled to fit its column.
+function fitMimic(){
+  document.querySelectorAll(".mimic-fit").forEach(f => {
+    const s = Math.min(1, f.clientWidth / 322);
+    f.style.setProperty("--mimic-s", s);
+    f.style.setProperty("--mimic-h", (322 * s) + "px");
+  });
+}
+if (!window.__mimicResize){ window.__mimicResize = true; window.addEventListener("resize", fitMimic); }
+
+function renderChestVisual(items, pulse){
+  // Mimic chest: lid (back) + a fanned row of slabs erupting from the mouth +
+  // body (front). Empty = lid drops shut. Up to 5 slabs + a "+N" overflow slab.
+  const MAX = 5;
+  const slabs = cart.slice(0, MAX).map(l => {
     const p = productById(l.productId);
     const accent = categoryById(p.category)?.accent || p.tone;
     return `<div class="slab" style="background:${accent}"><span>${categoryShort(p.category)}</span></div>`;
   }).join("");
-  const overflow = cart.length > 5
-    ? `<div class="slab" style="background:var(--color-ink)"><span>+${cart.length-5}</span></div>`
+  const overflow = cart.length > MAX
+    ? `<div class="slab" style="background:var(--color-ink)"><span>+${cart.length - MAX}</span></div>`
     : "";
 
   return `
     <div class="chest__drop">
-      <div class="pouch ${items ? "is-filled" : ""}" aria-hidden="true">
-        <div class="pouch__shadow"></div>
-        <div class="pouch__back"></div>
-        <div class="slabs">${visible}${overflow}</div>
-        <div class="pouch__front">
-          <div class="window">
-            <div class="window__brand">R&amp;G TCG</div>
-            <div class="window__state">${items ? "loot loaded" : "drag items here"}</div>
+      <div class="mimic-fit">
+        <div class="mimic-scale">
+          <div class="mimic ${items ? (pulse ? "pulse" : "") : "is-empty"}" aria-hidden="true">
+            <div class="mimic__shadow"></div>
+            <img class="layer mimic__lid" src="/assets/mimic/lid.svg" alt="" />
+            <div class="slabrow">${cart.length ? slabs + overflow : ""}</div>
+            <img class="layer mimic__bottom" src="/assets/mimic/bottom.svg" alt="" />
           </div>
         </div>
       </div>
@@ -244,7 +255,9 @@ function renderBag(){
 
   const inner = $("#bagInner");
   const prevScroll = inner.querySelector(".chest__scroll")?.scrollTop || 0;   // preserve position on re-render
-  const dropZone = renderChestVisual(items);
+  const grew = items > (renderBag._prevItems || 0);   // pulse the chest only when loot is added
+  renderBag._prevItems = items;
+  const dropZone = renderChestVisual(items, grew);
 
   if (!cart.length){
     inner.innerHTML = `
@@ -254,6 +267,7 @@ function renderBag(){
           <div class="chest__empty-copy">Add sealed product to unlock checkout.</div>
         </div>
       </div>`;
+    fitMimic();
     return;
   }
 
@@ -306,6 +320,7 @@ function renderBag(){
     b.onclick = () => { cart.splice(+b.dataset.rm,1); saveCart(); renderBag(); });
   const co = $("#checkoutBtn");
   if (co) co.onclick = () => { saveCart(); window.location.href = "checkout.html"; };
+  fitMimic();
 }
 
 function addToCart(id, format="pack", qty=1, fromEl){

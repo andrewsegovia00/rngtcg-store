@@ -3,15 +3,12 @@
    Email-list & deliverability metrics + a viewable / downloadable newsletter
    subscriber list.
    ============================================================================ */
-const TOKEN_KEY = "rg_admin_token";
 const $ = (s, r = document) => r.querySelector(s);
 const fmtDate = v => v ? new Date(v).toLocaleDateString() : "—";
 
 let subscribers = [];
 
-const token = () => sessionStorage.getItem(TOKEN_KEY) || "";
-const setToken = v => sessionStorage.setItem(TOKEN_KEY, v.trim());
-const clearToken = () => sessionStorage.removeItem(TOKEN_KEY);
+const token = () => (window.AdminAuth ? window.AdminAuth.accessToken() : "");
 
 function showStatus(message, type = "ok") {
   const el = $("#status");
@@ -109,15 +106,8 @@ async function load() {
   }
 }
 
-$("#tokenForm").addEventListener("submit", e => {
-  e.preventDefault();
-  const v = $("#adminToken").value;
-  if (!v.trim()) return showStatus("Enter an admin token first.", "err");
-  setToken(v);
-  load();
-});
 $("#refreshBtn").onclick = load;
-$("#lockBtn").onclick = () => { clearToken(); $("#adminToken").value = ""; showStatus("Locked.", "err"); };
+$("#lockBtn").onclick = () => window.AdminAuth.signOut();
 $("#downloadBtn").onclick = downloadCsv;
 
-if (token()) { $("#adminToken").value = token(); load(); }
+window.AdminAuth.requireLogin(load);

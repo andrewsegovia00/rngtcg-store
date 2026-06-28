@@ -4,7 +4,6 @@
    - Inventory/price editing
    - Pending reservation release
    ============================================================================ */
-const TOKEN_KEY = "rg_admin_token";
 let state = { products: [], inventory: [], orders: [], totals: null };
 let editingVariant = null;
 
@@ -14,9 +13,9 @@ const money = cents => `$${(Number(cents || 0) / 100).toFixed(2)}`;
 const fmtDate = value => value ? new Date(value).toLocaleString() : "—";
 const cap = s => String(s || "").replace(/^./, c => c.toUpperCase());
 
-function token() { return sessionStorage.getItem(TOKEN_KEY) || ""; }
-function setToken(value) { sessionStorage.setItem(TOKEN_KEY, value.trim()); }
-function clearToken() { sessionStorage.removeItem(TOKEN_KEY); }
+// Auth is handled by the shared Supabase gate (admin-auth.js); the bearer is
+// the current Supabase access token.
+function token() { return window.AdminAuth ? window.AdminAuth.accessToken() : ""; }
 
 function showStatus(message, type = "ok") {
   const el = $("#status");
@@ -41,10 +40,7 @@ async function api(path, options = {}) {
 }
 
 async function load() {
-  if (!token()) {
-    showStatus("Paste your admin token to load the dashboard.", "err");
-    return;
-  }
+  if (!token()) return;   // gate (admin-auth.js) handles the unauthenticated case
   try {
     showStatus("Loading admin dashboard…", "ok");
     const data = await api("/api/admin-overview");
@@ -52,7 +48,9 @@ async function load() {
     renderAll();
     showStatus("Dashboard refreshed.", "ok");
   } catch (error) {
-    showStatus(error.message, "err");
+    // A session that stops working mid-use bounces back to the sign-in gate.
+    if (/unauthor/i.test(error.message || "")) window.AdminAuth.signOut();
+    else showStatus(error.message, "err");
   }
 }
 
@@ -194,23 +192,12 @@ async function toggleProduct(id, active) {
 
 /* Orders moved to their own page — see orders.html / orders.js. */
 
-$("#tokenForm").addEventListener("submit", event => {
-  event.preventDefault();
-  const value = $("#adminToken").value;
-  if (!value.trim()) return showStatus("Enter an admin token first.", "err");
-  setToken(value);
-  load();
-});
 $("#refreshBtn").onclick = load;
-$("#lockBtn").onclick = () => { clearToken(); $("#adminToken").value = ""; showStatus("Admin session locked.", "err"); };
+$("#lockBtn").onclick = () => window.AdminAuth.signOut();
 $("#productSearch").addEventListener("input", renderInventory);
 $("#stockFilter").addEventListener("change", renderInventory);
 $("#variantForm").addEventListener("submit", saveVariant);
 $("#cancelVariant").onclick = () => $("#variantDialog").close();
 
-if (token()) {
-  $("#adminToken").value = token();
-  load();
-} else {
-  renderMetrics();
-}
+// Show the Supabase sign-in gate; load the dashboard once a session unlocks.
+window.AdminAuth.requireLogin(load);

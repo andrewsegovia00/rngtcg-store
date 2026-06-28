@@ -94,6 +94,22 @@ The admin frontend sends it as:
 Authorization: Bearer <ADMIN_TOKEN>
 ```
 
+## Admin login via Supabase (recommended)
+
+```txt
+SUPABASE_ANON_KEY=eyJ...        # browser-safe anon/public key (served via /api/public-config)
+ADMIN_EMAILS=you@example.com    # comma-separated allowlist of admin emails
+```
+
+Admins sign in with **Google** through Supabase OAuth. The server verifies the
+Supabase access token **and** that the user's email is in `ADMIN_EMAILS` on every
+admin API call. `ADMIN_TOKEN` (above) still works as a break-glass fallback.
+Setup: create a Google OAuth client (redirect URI
+`https://<project-ref>.supabase.co/auth/v1/callback`), enable the Google provider
+in Supabase, add your admin site URLs under Auth → URL Configuration → Redirect
+URLs, then set the two vars above and redeploy. If unset, the admin login shows
+"not configured" and `ADMIN_TOKEN` remains the way in.
+
 ## Optional / later keys
 
 **Order-confirmation email (Phase 4 — wired up, optional):**
