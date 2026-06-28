@@ -47,6 +47,12 @@ Living backlog for post-launch work. Newest priorities up top.
 - [ ] **PayPal as a payment option** — note: US Stripe Checkout does not offer
   PayPal, so this needs a separate integration path. Decide approach before
   building.
-- [ ] **Admin login gating** — failed login should return a blank page / bounce
-  back to the admin login instead of exposing the dashboard. Pair with
-  Cloudflare Access (Step 6b of GO_LIVE.md) for defense in depth.
+- [x] **Admin login gating (admin.html)** — dashboard now starts locked behind a
+  full-screen login gate; the token is verified against `/api/admin-overview`
+  before anything renders. Bad/empty token bounces back to the gate; a token
+  that stops working mid-session re-locks. (`admin.html`, `admin.css`, `admin.js`)
+- [ ] **Extend login gate to other admin pages** — orders.html, marketing.html,
+  coupons.html, email-template.html still show their shell unauthenticated
+  (data is token-protected, but the UI is visible). Apply the same gate.
+- [ ] **Cloudflare Access** (Step 6b of GO_LIVE.md) — the real lock (the JS gate
+  is convenience/defense-in-depth, not a security boundary on its own).

@@ -194,3 +194,13 @@ button { cursor: pointer; }
 .panel__head { padding: var(--space-6); }
 
 @media (max-width: 780px) { .admin-nav { width: 100%; order: 3; overflow-x: auto; justify-content: flex-start; flex-wrap: nowrap; } }
+
+/* ===== Login gate — nothing renders until a verified token unlocks it ===== */
+.hero-admin--solo { grid-template-columns: 1fr; }
+.login-gate { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: var(--space-5); background: var(--color-bg, #1a1320); }
+.login-gate__card { width: min(420px, 100%); }
+.login-gate__brand { display: flex; align-items: center; gap: var(--space-2); font-family: var(--font-display); font-size: var(--text-display-sm); margin-bottom: var(--space-2); }
+.login-gate__err { color: var(--color-danger); font-weight: var(--weight-bold); }
+/* When locked, keep the whole dashboard out of the DOM render so nothing leaks. */
+body.admin-locked .admin-header, body.admin-locked main, body.admin-locked .dialog { display: none !important; }
+body:not(.admin-locked) .login-gate { display: none; }

@@ -40,11 +40,37 @@ async function api(path, options = {}) {
   return data;
 }
 
-async function load() {
-  if (!token()) {
-    showStatus("Paste your admin token to load the dashboard.", "err");
-    return;
+/* ---- Login gate -------------------------------------------------------- */
+function lock(message) {
+  document.body.classList.add("admin-locked");
+  const err = $("#gateError");
+  if (err) { err.hidden = !message; err.textContent = message || ""; }
+  const input = $("#adminToken");
+  if (input) { input.value = ""; input.focus(); }
+}
+function unlock() {
+  document.body.classList.remove("admin-locked");
+  const err = $("#gateError"); if (err) err.hidden = true;
+}
+
+// Verify the token by actually hitting an admin endpoint. On success the
+// dashboard renders; on a bad token we clear it and stay on the gate.
+async function attemptUnlock() {
+  try {
+    const data = await api("/api/admin-overview");
+    state = data;
+    unlock();
+    renderAll();
+    showStatus("Dashboard loaded.", "ok");
+  } catch (error) {
+    clearToken();
+    const bad = /unauthor/i.test(error.message || "");
+    lock(bad ? "Incorrect token — try again." : (error.message || "Login failed."));
   }
+}
+
+async function load() {
+  if (!token()) { lock(); return; }
   try {
     showStatus("Loading admin dashboard…", "ok");
     const data = await api("/api/admin-overview");
@@ -52,7 +78,9 @@ async function load() {
     renderAll();
     showStatus("Dashboard refreshed.", "ok");
   } catch (error) {
-    showStatus(error.message, "err");
+    // A token that stops working mid-session bounces back to the gate.
+    if (/unauthor/i.test(error.message || "")) { clearToken(); lock("Session expired — sign in again."); }
+    else showStatus(error.message, "err");
   }
 }
 
@@ -196,21 +224,22 @@ async function toggleProduct(id, active) {
 
 $("#tokenForm").addEventListener("submit", event => {
   event.preventDefault();
-  const value = $("#adminToken").value;
-  if (!value.trim()) return showStatus("Enter an admin token first.", "err");
+  const value = $("#adminToken").value.trim();
+  if (!value) return lock("Enter an admin token.");
   setToken(value);
-  load();
+  attemptUnlock();
 });
 $("#refreshBtn").onclick = load;
-$("#lockBtn").onclick = () => { clearToken(); $("#adminToken").value = ""; showStatus("Admin session locked.", "err"); };
+$("#lockBtn").onclick = () => { clearToken(); lock(); };
 $("#productSearch").addEventListener("input", renderInventory);
 $("#stockFilter").addEventListener("change", renderInventory);
 $("#variantForm").addEventListener("submit", saveVariant);
 $("#cancelVariant").onclick = () => $("#variantDialog").close();
 
+// Start locked. If a token is already in this session, verify it silently —
+// valid unlocks the dashboard, invalid keeps the gate up.
 if (token()) {
-  $("#adminToken").value = token();
-  load();
+  attemptUnlock();
 } else {
-  renderMetrics();
+  lock();
 }

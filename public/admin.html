@@ -12,7 +12,20 @@
 <link rel="stylesheet" href="tokens.css" />
 <link rel="stylesheet" href="admin.css" />
 </head>
-<body>
+<body class="admin-locked">
+  <div class="login-gate" id="loginGate">
+    <form class="token-card login-gate__card" id="tokenForm">
+      <div class="login-gate__brand"><span class="brand__mark">R&G</span> <strong>Admin access</strong></div>
+      <label for="adminToken">Admin token</label>
+      <div class="token-row">
+        <input id="adminToken" type="password" autocomplete="off" autofocus placeholder="Paste ADMIN_TOKEN" />
+        <button type="submit">Unlock</button>
+      </div>
+      <p class="login-gate__err" id="gateError" hidden></p>
+      <p>Stored in this browser session only. The server re-checks the token on every request.</p>
+    </form>
+  </div>
+
   <header class="admin-header">
     <a class="brand" href="shop.html" aria-label="Back to shop">
       <span class="brand__mark">R&G</span>
@@ -36,20 +49,12 @@
   </header>
 
   <main class="wrap">
-    <section class="hero-admin">
+    <section class="hero-admin hero-admin--solo">
       <div>
         <p class="eyebrow"> Admin </p>
         <h1>Command center</h1>
         <p>Watch reserved inventory, update stock, toggle or delete products, and keep an eye on store metrics. Orders live on the <a href="orders.html">Orders</a> page.</p>
       </div>
-      <form class="token-card" id="tokenForm">
-        <label for="adminToken">Admin token</label>
-        <div class="token-row">
-          <input id="adminToken" type="password" autocomplete="off" placeholder="Paste ADMIN_TOKEN" />
-          <button type="submit">Unlock</button>
-        </div>
-        <p>Stored in this browser session only. Server still checks the token on every admin API call.</p>
-      </form>
     </section>
 
     <section class="status" id="status" hidden></section>
