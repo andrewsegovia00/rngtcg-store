@@ -28,6 +28,17 @@ function loadCart(){
 }
 let cart = loadCart().filter(l => productById(l.productId));
 
+function saveCart(){
+  localStorage.setItem("rg_tcg_cart", JSON.stringify({ items: cart, savedAt: Date.now() }));
+}
+function removeLine(i){
+  if (i < 0 || i >= cart.length) return;
+  cart.splice(i, 1);
+  saveCart();
+  renderSummary();
+  fetchRates();   // re-quote shipping for the new cart (gracefully no-ops when empty)
+}
+
 function subtotal(){ return cart.reduce((s,l)=> s + unitPrice(productById(l.productId), l.format)*l.quantity, 0); }
 function itemCount(){ return cart.reduce((s,l)=>s+l.quantity,0); }
 function shippingDollars(){ return chosenShipping ? chosenShipping.amount_cents / 100 : 0; }
@@ -55,15 +66,17 @@ function renderSummary(){
   if(!cart.length){
     lines.innerHTML = `<div class="summary-empty">Your checkout chest is empty. Go back to the shop and add product.</div>`;
   } else {
-    lines.innerHTML = `<div class="summary-lines">${cart.map(l => {
+    lines.innerHTML = `<div class="summary-lines">${cart.map((l, i) => {
       const p = productById(l.productId);
       const each = unitPrice(p,l.format);
       return `<div class="summary-line">
         <div class="summary-thumb" style="--tone:${p.tone}">${p.symbol}</div>
         <div><div class="summary-name">${p.name}</div><div class="summary-meta">${categoryShort(p.category)} · ${languageShort(p.language)} · ${l.format} · qty ${l.quantity}</div></div>
         <div class="summary-price">${formatMoney(each*l.quantity)}</div>
+        <button class="summary-remove" type="button" data-rm="${i}" aria-label="Remove ${p.name}" title="Remove">×</button>
       </div>`;
     }).join("")}</div>`;
+    lines.querySelectorAll(".summary-remove").forEach(b => { b.onclick = () => removeLine(+b.dataset.rm); });
   }
 
   const shipCell = chosenShipping
