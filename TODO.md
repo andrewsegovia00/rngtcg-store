@@ -14,7 +14,7 @@ Living backlog for post-launch work. Newest priorities up top.
 - [ ] **Stripe protective measures** — Radar fraud rules + 3D Secure.
   - [x] Code: `billing_address_collection=required` (enables AVS), and
     `request_three_d_secure` driven by `STRIPE_3DS_MODE` env var
-    (`automatic` default / `any` to force 3DS on every card).
+    (defaults to `any` = 3DS on every card; set `automatic` to dial back).
   - [ ] Dashboard (Stripe): turn on Radar, add rules (block/review by risk
     score, request 3DS on elevated risk, card/email/IP blocklists, velocity
     limits). Owner action — see checklist in chat.

@@ -223,11 +223,11 @@ export async function onRequestPost(context) {
   // feeds it to Radar for fraud scoring.
   append(params, "billing_address_collection", "required");
 
-  // 3D Secure request level (fraud protection). "automatic" (default) lets
-  // Stripe/Radar trigger 3DS on risky or regulation-required payments — most
-  // shoppers see no extra step. Set STRIPE_3DS_MODE=any in the Cloudflare env to
-  // force 3DS on every eligible card (max protection, more checkout friction).
-  const tdsMode = String(env.STRIPE_3DS_MODE || "automatic").trim().toLowerCase() === "any" ? "any" : "automatic";
+  // 3D Secure request level (fraud protection). Default "any" forces 3DS on
+  // every eligible card for maximum chargeback protection. Set
+  // STRIPE_3DS_MODE=automatic in the Cloudflare env to dial it back so 3DS only
+  // triggers on risky/regulation-required payments (less checkout friction).
+  const tdsMode = String(env.STRIPE_3DS_MODE || "any").trim().toLowerCase() === "automatic" ? "automatic" : "any";
   append(params, "payment_method_options[card][request_three_d_secure]", tdsMode);
   // We already collected shipping on our page — Stripe just takes payment.
   append(params, "metadata[source]", "rg-tcg-mvp");
