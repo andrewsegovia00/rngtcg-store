@@ -12,9 +12,12 @@ Living backlog for post-launch work. Newest priorities up top.
 
 ## In progress
 - [ ] **Stripe protective measures** — Radar fraud rules + 3D Secure.
-  - Code: request level for 3DS on the Checkout Session.
-  - Dashboard (Stripe): Radar rules (block/review by risk score, 3DS on elevated
-    risk, blocklists, velocity rules). See notes when implemented.
+  - [x] Code: `billing_address_collection=required` (enables AVS), and
+    `request_three_d_secure` driven by `STRIPE_3DS_MODE` env var
+    (`automatic` default / `any` to force 3DS on every card).
+  - [ ] Dashboard (Stripe): turn on Radar, add rules (block/review by risk
+    score, request 3DS on elevated risk, card/email/IP blocklists, velocity
+    limits). Owner action — see checklist in chat.
 
 ## Backlog
 - [ ] **Box / treasure SVG update** — refresh the chest/treasure artwork used in
