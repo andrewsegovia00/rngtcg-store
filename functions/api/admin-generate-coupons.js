@@ -23,7 +23,7 @@ function randomCode(prefix = "RG") {
 }
 
 export async function onRequestPost({ request, env }) {
-  const guard = requireAdmin(request, env);
+  const guard = await requireAdmin(request, env);
   if (!guard.ok) return guard.response;
   if (!hasStripe(env)) return json({ error: "Missing STRIPE_SECRET_KEY." }, 501);
 

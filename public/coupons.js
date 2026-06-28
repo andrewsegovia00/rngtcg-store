@@ -2,14 +2,11 @@
    R&G TCG — Coupons page. Token-gated (shares the admin token). Generate
    single-use codes, list all codes, delete (deactivates the Stripe promo code).
    ============================================================================ */
-const TOKEN_KEY = "rg_admin_token";
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const fmtDate = v => v ? new Date(v).toLocaleDateString() : "—";
 
-const token = () => sessionStorage.getItem(TOKEN_KEY) || "";
-const setToken = v => sessionStorage.setItem(TOKEN_KEY, v.trim());
-const clearToken = () => sessionStorage.removeItem(TOKEN_KEY);
+const token = () => (window.AdminAuth ? window.AdminAuth.accessToken() : "");
 
 function showStatus(message, type = "ok") {
   const el = $("#status");
@@ -83,15 +80,8 @@ async function deleteCoupon(code) {
   }
 }
 
-$("#tokenForm").addEventListener("submit", e => {
-  e.preventDefault();
-  const v = $("#adminToken").value;
-  if (!v.trim()) return showStatus("Enter an admin token first.", "err");
-  setToken(v);
-  load();
-});
 $("#refreshBtn").onclick = load;
-$("#lockBtn").onclick = () => { clearToken(); $("#adminToken").value = ""; showStatus("Locked.", "err"); };
+$("#lockBtn").onclick = () => window.AdminAuth.signOut();
 $("#couponForm").addEventListener("submit", generate);
 
-if (token()) { $("#adminToken").value = token(); load(); }
+window.AdminAuth.requireLogin(load);

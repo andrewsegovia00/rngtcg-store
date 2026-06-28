@@ -94,6 +94,20 @@ The admin frontend sends it as:
 Authorization: Bearer <ADMIN_TOKEN>
 ```
 
+## Admin login via Supabase (recommended)
+
+```txt
+SUPABASE_ANON_KEY=eyJ...        # browser-safe anon/public key (served via /api/public-config)
+ADMIN_EMAILS=you@example.com    # comma-separated allowlist of admin emails
+```
+
+Admins sign in with email + password through Supabase Auth. The server verifies
+the Supabase access token **and** that the user's email is in `ADMIN_EMAILS` on
+every admin API call. `ADMIN_TOKEN` (above) still works as a break-glass
+fallback. Setup: enable the Email provider in Supabase, disable public sign-ups,
+add your admin user(s), then set the two vars above and redeploy. If unset, the
+admin login shows "not configured" and `ADMIN_TOKEN` remains the way in.
+
 ## Optional / later keys
 
 **Order-confirmation email (Phase 4 — wired up, optional):**

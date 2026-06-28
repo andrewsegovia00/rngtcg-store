@@ -4,7 +4,6 @@
    fulfillment, and PirateShip export. Default view is the current month;
    switch the date range to see older orders.
    ============================================================================ */
-const TOKEN_KEY = "rg_admin_token";
 const $ = (s, root = document) => root.querySelector(s);
 const $$ = (s, root = document) => Array.from(root.querySelectorAll(s));
 const money = cents => `$${(Number(cents || 0) / 100).toFixed(2)}`;
@@ -15,9 +14,7 @@ let orders = [];
 const selectedOrders = new Set();
 const TAG_LABEL = { sealed: "Sealed", open_live: "Open live" };
 
-const token = () => sessionStorage.getItem(TOKEN_KEY) || "";
-const setToken = v => sessionStorage.setItem(TOKEN_KEY, v.trim());
-const clearToken = () => sessionStorage.removeItem(TOKEN_KEY);
+const token = () => (window.AdminAuth ? window.AdminAuth.accessToken() : "");
 
 function showStatus(message, type = "ok") {
   const el = $("#status");
@@ -236,15 +233,8 @@ async function exportOrders() {
   }
 }
 
-$("#tokenForm").addEventListener("submit", event => {
-  event.preventDefault();
-  const value = $("#adminToken").value;
-  if (!value.trim()) return showStatus("Enter an admin token first.", "err");
-  setToken(value);
-  load();
-});
 $("#refreshBtn").onclick = load;
-$("#lockBtn").onclick = () => { clearToken(); $("#adminToken").value = ""; showStatus("Admin session locked.", "err"); };
+$("#lockBtn").onclick = () => window.AdminAuth.signOut();
 $("#orderFilter").addEventListener("change", () => { selectedOrders.clear(); renderOrders(); });
 $("#dateRange").addEventListener("change", () => { selectedOrders.clear(); renderOrders(); });
 $("#exportBtn").onclick = exportOrders;
@@ -256,4 +246,4 @@ $("#bulkBundle").onclick = () => selectedOrders.size && updateOrders([...selecte
 $("#bulkUnbundle").onclick = () => selectedOrders.size && updateOrders([...selectedOrders], { bundle: "clear" });
 $("#bulkClear").onclick = () => { selectedOrders.clear(); renderOrders(); };
 
-if (token()) { $("#adminToken").value = token(); load(); }
+window.AdminAuth.requireLogin(load);

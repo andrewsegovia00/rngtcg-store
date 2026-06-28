@@ -13,19 +13,6 @@
 <link rel="stylesheet" href="admin.css" />
 </head>
 <body class="admin-locked">
-  <div class="login-gate" id="loginGate">
-    <form class="token-card login-gate__card" id="tokenForm">
-      <div class="login-gate__brand"><span class="brand__mark">R&G</span> <strong>Admin access</strong></div>
-      <label for="adminToken">Admin token</label>
-      <div class="token-row">
-        <input id="adminToken" type="password" autocomplete="off" autofocus placeholder="Paste ADMIN_TOKEN" />
-        <button type="submit">Unlock</button>
-      </div>
-      <p class="login-gate__err" id="gateError" hidden></p>
-      <p>Stored in this browser session only. The server re-checks the token on every request.</p>
-    </form>
-  </div>
-
   <header class="admin-header">
     <a class="brand" href="shop.html" aria-label="Back to shop">
       <span class="brand__mark">R&G</span>
@@ -125,6 +112,7 @@
     </form>
   </dialog>
 
+  <script src="admin-auth.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>

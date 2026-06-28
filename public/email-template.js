@@ -3,13 +3,10 @@
    Loads the editable email_settings fields, shows the built-in defaults as
    placeholders, renders a live server-side preview, and saves changes.
    ============================================================================ */
-const TOKEN_KEY = "rg_admin_token";
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 
-const token = () => sessionStorage.getItem(TOKEN_KEY) || "";
-const setToken = v => sessionStorage.setItem(TOKEN_KEY, v.trim());
-const clearToken = () => sessionStorage.removeItem(TOKEN_KEY);
+const token = () => (window.AdminAuth ? window.AdminAuth.accessToken() : "");
 
 let defaults = {};
 let previewKind = "order";
@@ -95,15 +92,8 @@ async function save() {
   }
 }
 
-$("#tokenForm").addEventListener("submit", e => {
-  e.preventDefault();
-  const v = $("#adminToken").value;
-  if (!v.trim()) return showStatus("Enter an admin token first.", "err");
-  setToken(v);
-  load();
-});
 $("#refreshBtn").onclick = load;
-$("#lockBtn").onclick = () => { clearToken(); $("#adminToken").value = ""; showStatus("Locked.", "err"); };
+$("#lockBtn").onclick = () => window.AdminAuth.signOut();
 $("#saveBtn").onclick = save;
 $$("[data-field]").forEach(el => el.addEventListener("input", schedulePreview));
 $$(".seg__btn").forEach(b => b.onclick = () => {
@@ -112,4 +102,4 @@ $$(".seg__btn").forEach(b => b.onclick = () => {
   paintPreview();
 });
 
-if (token()) { $("#adminToken").value = token(); load(); }
+window.AdminAuth.requireLogin(load);

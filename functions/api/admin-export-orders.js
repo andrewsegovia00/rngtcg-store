@@ -52,7 +52,7 @@ function applyShipMode(baseOz, mode) {
 }
 
 export async function onRequestGet({ request, env }) {
-  const guard = requireAdmin(request, env);
+  const guard = await requireAdmin(request, env);
   if (!guard.ok) return guard.response;
   if (!hasSupabase(env)) return json({ error: "Supabase is not configured." }, 501);
 

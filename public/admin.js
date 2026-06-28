@@ -4,7 +4,6 @@
    - Inventory/price editing
    - Pending reservation release
    ============================================================================ */
-const TOKEN_KEY = "rg_admin_token";
 let state = { products: [], inventory: [], orders: [], totals: null };
 let editingVariant = null;
 
@@ -14,9 +13,9 @@ const money = cents => `$${(Number(cents || 0) / 100).toFixed(2)}`;
 const fmtDate = value => value ? new Date(value).toLocaleString() : "—";
 const cap = s => String(s || "").replace(/^./, c => c.toUpperCase());
 
-function token() { return sessionStorage.getItem(TOKEN_KEY) || ""; }
-function setToken(value) { sessionStorage.setItem(TOKEN_KEY, value.trim()); }
-function clearToken() { sessionStorage.removeItem(TOKEN_KEY); }
+// Auth is handled by the shared Supabase gate (admin-auth.js); the bearer is
+// the current Supabase access token.
+function token() { return window.AdminAuth ? window.AdminAuth.accessToken() : ""; }
 
 function showStatus(message, type = "ok") {
   const el = $("#status");
@@ -40,37 +39,8 @@ async function api(path, options = {}) {
   return data;
 }
 
-/* ---- Login gate -------------------------------------------------------- */
-function lock(message) {
-  document.body.classList.add("admin-locked");
-  const err = $("#gateError");
-  if (err) { err.hidden = !message; err.textContent = message || ""; }
-  const input = $("#adminToken");
-  if (input) { input.value = ""; input.focus(); }
-}
-function unlock() {
-  document.body.classList.remove("admin-locked");
-  const err = $("#gateError"); if (err) err.hidden = true;
-}
-
-// Verify the token by actually hitting an admin endpoint. On success the
-// dashboard renders; on a bad token we clear it and stay on the gate.
-async function attemptUnlock() {
-  try {
-    const data = await api("/api/admin-overview");
-    state = data;
-    unlock();
-    renderAll();
-    showStatus("Dashboard loaded.", "ok");
-  } catch (error) {
-    clearToken();
-    const bad = /unauthor/i.test(error.message || "");
-    lock(bad ? "Incorrect token — try again." : (error.message || "Login failed."));
-  }
-}
-
 async function load() {
-  if (!token()) { lock(); return; }
+  if (!token()) return;   // gate (admin-auth.js) handles the unauthenticated case
   try {
     showStatus("Loading admin dashboard…", "ok");
     const data = await api("/api/admin-overview");
@@ -78,8 +48,8 @@ async function load() {
     renderAll();
     showStatus("Dashboard refreshed.", "ok");
   } catch (error) {
-    // A token that stops working mid-session bounces back to the gate.
-    if (/unauthor/i.test(error.message || "")) { clearToken(); lock("Session expired — sign in again."); }
+    // A session that stops working mid-use bounces back to the sign-in gate.
+    if (/unauthor/i.test(error.message || "")) window.AdminAuth.signOut();
     else showStatus(error.message, "err");
   }
 }
@@ -222,24 +192,12 @@ async function toggleProduct(id, active) {
 
 /* Orders moved to their own page — see orders.html / orders.js. */
 
-$("#tokenForm").addEventListener("submit", event => {
-  event.preventDefault();
-  const value = $("#adminToken").value.trim();
-  if (!value) return lock("Enter an admin token.");
-  setToken(value);
-  attemptUnlock();
-});
 $("#refreshBtn").onclick = load;
-$("#lockBtn").onclick = () => { clearToken(); lock(); };
+$("#lockBtn").onclick = () => window.AdminAuth.signOut();
 $("#productSearch").addEventListener("input", renderInventory);
 $("#stockFilter").addEventListener("change", renderInventory);
 $("#variantForm").addEventListener("submit", saveVariant);
 $("#cancelVariant").onclick = () => $("#variantDialog").close();
 
-// Start locked. If a token is already in this session, verify it silently —
-// valid unlocks the dashboard, invalid keeps the gate up.
-if (token()) {
-  attemptUnlock();
-} else {
-  lock();
-}
+// Show the Supabase sign-in gate; load the dashboard once a session unlocks.
+window.AdminAuth.requireLogin(load);

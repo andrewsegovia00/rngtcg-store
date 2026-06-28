@@ -52,12 +52,22 @@ Living backlog for post-launch work. Newest priorities up top.
 - [ ] **PayPal as a payment option** — note: US Stripe Checkout does not offer
   PayPal, so this needs a separate integration path. Decide approach before
   building.
-- [x] **Admin login gating (admin.html)** — dashboard now starts locked behind a
-  full-screen login gate; the token is verified against `/api/admin-overview`
-  before anything renders. Bad/empty token bounces back to the gate; a token
-  that stops working mid-session re-locks. (`admin.html`, `admin.css`, `admin.js`)
-- [ ] **Extend login gate to other admin pages** — orders.html, marketing.html,
-  coupons.html, email-template.html still show their shell unauthenticated
-  (data is token-protected, but the UI is visible). Apply the same gate.
-- [ ] **Cloudflare Access** (Step 6b of GO_LIVE.md) — the real lock (the JS gate
-  is convenience/defense-in-depth, not a security boundary on its own).
+- [x] **Supabase admin auth (all pages + all endpoints)** — admins sign in with
+  email + password via Supabase. Server guard (`functions/_lib/admin.js`,
+  used by all 13 admin endpoints) verifies the Supabase access token AND an
+  email allowlist; `ADMIN_TOKEN` still works as a break-glass fallback. A shared
+  `admin-auth.js` injects a sign-in gate on every admin page (admin, orders,
+  marketing, coupons, email-template); the dashboard stays hidden until a valid
+  session exists. Degrades gracefully (gate shows "not configured" until keys set).
+
+  **Owner setup required to turn it on:**
+  1. Supabase → Authentication → Providers → enable **Email**; turn **OFF**
+     "Enable sign-ups" so randoms can't self-register.
+  2. Supabase → Authentication → Users → **Add user** (your email + password).
+  3. Cloudflare Pages env (Production):
+     - `SUPABASE_ANON_KEY` = your project's anon/public key
+     - `ADMIN_EMAILS` = comma-separated allowlist (e.g. `you@example.com`)
+     - (`SUPABASE_URL` already set; `ADMIN_TOKEN` kept as break-glass)
+  4. Redeploy. Until then, the old `ADMIN_TOKEN` still works.
+- [ ] **Cloudflare Access** (Step 6b of GO_LIVE.md) — optional hard edge lock in
+  front of the admin URLs (defense in depth on top of the app-level auth).
