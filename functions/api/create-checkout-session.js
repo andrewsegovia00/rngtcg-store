@@ -20,8 +20,14 @@ const json = (body, status = 200) => new Response(JSON.stringify(body, null, 2),
 });
 
 function baseUrl(request, env) {
-  const configured = env.SITE_URL && String(env.SITE_URL).replace(/\/$/, "");
-  if (configured) return configured;
+  let configured = env.SITE_URL && String(env.SITE_URL).trim().replace(/\/$/, "");
+  if (configured) {
+    // Stripe requires an explicit scheme on success_url/cancel_url. If SITE_URL
+    // was set as a bare domain (e.g. "rngtcg.com"), default it to https:// so
+    // checkout doesn't fail with Stripe's "url_invalid" error.
+    if (!/^https?:\/\//i.test(configured)) configured = `https://${configured}`;
+    return configured;
+  }
   const url = new URL(request.url);
   return `${url.protocol}//${url.host}`;
 }

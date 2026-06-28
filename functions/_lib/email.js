@@ -85,7 +85,11 @@ export function resolveEmailConfig(env, row = {}) {
     const envVal = ENV_FALLBACKS[key] ? String(env[ENV_FALLBACKS[key]] || "").trim() : "";
     cfg[key] = stored || envVal || EMAIL_DEFAULTS[key];
   }
-  cfg.site_url = String(env.SITE_URL || "").replace(/\/$/, "");
+  // Match checkout's baseUrl(): tolerate a bare-domain SITE_URL so email links
+  // (order status, etc.) always carry an explicit scheme.
+  let siteUrl = String(env.SITE_URL || "").trim().replace(/\/$/, "");
+  if (siteUrl && !/^https?:\/\//i.test(siteUrl)) siteUrl = `https://${siteUrl}`;
+  cfg.site_url = siteUrl;
   return cfg;
 }
 
