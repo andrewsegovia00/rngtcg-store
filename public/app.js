@@ -205,22 +205,28 @@ function totals(){
 
 
 function renderChestVisual(items){
-  // Mimic chest: layered SVG — lid (back) + a fanned hand of cards + body (front),
-  // so cart items look like they're erupting from the mimic's open mouth.
-  const MAX = 5;
-  const cards = cart.slice(0, MAX).map(l => {
+  // Pouch chest (from chest-pouch-preview): up to 5 category slabs + a "+N" overflow slab.
+  const visible = cart.slice(0,5).map(l => {
     const p = productById(l.productId);
     const accent = categoryById(p.category)?.accent || p.tone;
-    return `<div class="mcard" style="--c:${accent}"><span>${categoryShort(p.category)}</span></div>`;
+    return `<div class="slab" style="background:${accent}"><span>${categoryShort(p.category)}</span></div>`;
   }).join("");
-  const overflow = cart.length > MAX ? `<div class="mimic__more">+${cart.length - MAX}</div>` : "";
+  const overflow = cart.length > 5
+    ? `<div class="slab" style="background:var(--color-ink)"><span>+${cart.length-5}</span></div>`
+    : "";
 
   return `
     <div class="chest__drop">
-      <div class="mimic ${items ? "is-filled" : ""}" aria-hidden="true">
-        <img class="mimic__layer mimic__lid" src="/assets/mimic/lid.svg" alt="" />
-        ${cart.length ? `<div class="mimic__cards">${cards}</div>${overflow}` : ""}
-        <img class="mimic__layer mimic__bottom" src="/assets/mimic/bottom.svg" alt="" />
+      <div class="pouch ${items ? "is-filled" : ""}" aria-hidden="true">
+        <div class="pouch__shadow"></div>
+        <div class="pouch__back"></div>
+        <div class="slabs">${visible}${overflow}</div>
+        <div class="pouch__front">
+          <div class="window">
+            <div class="window__brand">R&amp;G TCG</div>
+            <div class="window__state">${items ? "loot loaded" : "drag items here"}</div>
+          </div>
+        </div>
       </div>
     </div>`;
 }
