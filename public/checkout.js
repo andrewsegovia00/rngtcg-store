@@ -11,10 +11,19 @@ const $ = s => document.querySelector(s);
 let chosenShipping = null;   // { id, amount_cents, label }
 let ratesToken = 0;          // guards against out-of-order quote responses
 
+const CART_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours — keep in sync with app.js
+
 function loadCart(){
   try {
-    const parsed = JSON.parse(localStorage.getItem("rg_tcg_cart") || "[]");
-    return Array.isArray(parsed) ? parsed : [];
+    const raw = localStorage.getItem("rg_tcg_cart");
+    if (!raw) return [];
+    const stored = JSON.parse(raw);
+    // Mirror app.js: { items, savedAt } shape with a 4-hour TTL. Legacy bare
+    // arrays and expired carts read as empty so checkout never charges a stale cart.
+    const fresh = stored && Array.isArray(stored.items) && typeof stored.savedAt === "number"
+      && (Date.now() - stored.savedAt) < CART_TTL_MS;
+    if (!fresh) { localStorage.removeItem("rg_tcg_cart"); return []; }
+    return stored.items;
   } catch (_) { return []; }
 }
 let cart = loadCart().filter(l => productById(l.productId));

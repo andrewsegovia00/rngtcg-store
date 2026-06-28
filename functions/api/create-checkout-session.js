@@ -20,8 +20,14 @@ const json = (body, status = 200) => new Response(JSON.stringify(body, null, 2),
 });
 
 function baseUrl(request, env) {
-  const configured = env.SITE_URL && String(env.SITE_URL).replace(/\/$/, "");
-  if (configured) return configured;
+  let configured = env.SITE_URL && String(env.SITE_URL).trim().replace(/\/$/, "");
+  if (configured) {
+    // Stripe requires an explicit scheme on success_url/cancel_url. If SITE_URL
+    // was set as a bare domain (e.g. "rngtcg.com"), default it to https:// so
+    // checkout doesn't fail with Stripe's "url_invalid" error.
+    if (!/^https?:\/\//i.test(configured)) configured = `https://${configured}`;
+    return configured;
+  }
   const url = new URL(request.url);
   return `${url.protocol}//${url.host}`;
 }
@@ -213,7 +219,16 @@ export async function onRequestPost(context) {
   append(params, "success_url", `${origin}/success.html?session_id={CHECKOUT_SESSION_ID}`);
   append(params, "cancel_url", `${origin}/checkout.html?checkout=cancelled${orderId ? `&order_id=${encodeURIComponent(orderId)}` : ""}`);
   append(params, "allow_promotion_codes", "true");
-  append(params, "billing_address_collection", "auto");
+  // Require a full billing address so Stripe runs AVS (address-verification) and
+  // feeds it to Radar for fraud scoring.
+  append(params, "billing_address_collection", "required");
+
+  // 3D Secure request level (fraud protection). Default "any" forces 3DS on
+  // every eligible card for maximum chargeback protection. Set
+  // STRIPE_3DS_MODE=automatic in the Cloudflare env to dial it back so 3DS only
+  // triggers on risky/regulation-required payments (less checkout friction).
+  const tdsMode = String(env.STRIPE_3DS_MODE || "any").trim().toLowerCase() === "automatic" ? "automatic" : "any";
+  append(params, "payment_method_options[card][request_three_d_secure]", tdsMode);
   // We already collected shipping on our page — Stripe just takes payment.
   append(params, "metadata[source]", "rg-tcg-mvp");
   append(params, "metadata[item_count]", stripeLines.reduce((sum, line) => sum + line.quantity, 0));

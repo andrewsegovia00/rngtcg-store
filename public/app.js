@@ -29,17 +29,29 @@ const artFor = (p, fmt) => (fmt === "box" ? (p.image || p.imagePack) : (p.imageP
 const hasFormat = (p, fmt) => (fmt === "box" ? p.boxPrice : p.packPrice) != null;
 const defaultFormat = p => (hasFormat(p, "pack") ? "pack" : "box");
 
+const CART_KEY = "rg_tcg_cart";
+const CART_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours — a stale cart clears itself
+
 function loadCart(){
   try {
-    const raw = localStorage.getItem("rg_tcg_cart");
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.filter(l => productById(l.productId)) : [];
+    const raw = localStorage.getItem(CART_KEY);
+    if (!raw) return [];
+    const stored = JSON.parse(raw);
+    // Current shape is { items, savedAt }. A legacy bare array (no timestamp) or
+    // anything older than the TTL is treated as stale and cleared, so a cart
+    // left from days ago doesn't linger. savedAt refreshes on every save, so an
+    // actively-used cart never expires out from under the shopper.
+    const fresh = stored && Array.isArray(stored.items) && typeof stored.savedAt === "number"
+      && (Date.now() - stored.savedAt) < CART_TTL_MS;
+    if (!fresh) { localStorage.removeItem(CART_KEY); return []; }
+    return stored.items.filter(l => productById(l.productId));
   } catch (_) {
+    localStorage.removeItem(CART_KEY);
     return [];
   }
 }
 function saveCart(){
-  localStorage.setItem("rg_tcg_cart", JSON.stringify(cart));
+  localStorage.setItem(CART_KEY, JSON.stringify({ items: cart, savedAt: Date.now() }));
 }
 
 /* ==========================================================================
