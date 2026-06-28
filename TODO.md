@@ -34,11 +34,16 @@ Living backlog for post-launch work. Newest priorities up top.
   - **Recommendation:** ship on the free tier now; upgrade to Fraud Teams only
     once real fraud patterns appear.
 
+## Done (cont.)
+- [x] **Mimic chest visual** — ported from the owner's preview: lid (back) +
+  slabs erupting from the mouth + body (front); lid drops shut when empty,
+  pulses when loot is added, cap 5 slabs + "+N". Scales to its column via a
+  fit transform. (`app.js` renderChestVisual/fitMimic, `styles.css` .mimic,
+  `public/assets/mimic/`). Note: full re-render means the lid open/close
+  doesn't tween (it snaps to state) — can be made to animate by persisting the
+  element if desired.
+
 ## Backlog
-- [ ] **Box / treasure (mimic) chest visual** — PARKED. First attempt (layered
-  lid + fanned cards + body) didn't look right and was reverted; old pouch
-  visual restored. SVGs kept at `public/assets/mimic/` for a future retry.
-  Need a clearer reference/example of the intended look before redoing.
 - [ ] **Limit / cap Google Maps API usage** — referrer-lock the key + hard
   per-day quota caps in Google Cloud Console (Step 7 of GO_LIVE.md).
 - [ ] **USPS-only shipping + require tracking number** — restrict shipping
