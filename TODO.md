@@ -52,22 +52,27 @@ Living backlog for post-launch work. Newest priorities up top.
 - [ ] **PayPal as a payment option** — note: US Stripe Checkout does not offer
   PayPal, so this needs a separate integration path. Decide approach before
   building.
-- [x] **Supabase admin auth (all pages + all endpoints)** — admins sign in with
-  email + password via Supabase. Server guard (`functions/_lib/admin.js`,
-  used by all 13 admin endpoints) verifies the Supabase access token AND an
-  email allowlist; `ADMIN_TOKEN` still works as a break-glass fallback. A shared
-  `admin-auth.js` injects a sign-in gate on every admin page (admin, orders,
-  marketing, coupons, email-template); the dashboard stays hidden until a valid
-  session exists. Degrades gracefully (gate shows "not configured" until keys set).
+- [x] **Supabase admin auth — Google sign-in (all pages + all endpoints)** —
+  admins sign in with **Google** via Supabase OAuth. Server guard
+  (`functions/_lib/admin.js`, used by all 13 admin endpoints) verifies the
+  Supabase access token AND an email allowlist; `ADMIN_TOKEN` stays as a
+  break-glass fallback. Shared `admin-auth.js` injects a "Continue with Google"
+  gate on every admin page; the UI only unlocks after the server confirms the
+  signed-in Google account is on the allowlist (non-admins never see the
+  dashboard). Degrades gracefully (gate shows "not configured" until keys set).
 
   **Owner setup required to turn it on:**
-  1. Supabase → Authentication → Providers → enable **Email**; turn **OFF**
-     "Enable sign-ups" so randoms can't self-register.
-  2. Supabase → Authentication → Users → **Add user** (your email + password).
-  3. Cloudflare Pages env (Production):
-     - `SUPABASE_ANON_KEY` = your project's anon/public key
-     - `ADMIN_EMAILS` = comma-separated allowlist (e.g. `you@example.com`)
+  1. Google Cloud Console → APIs & Services → Credentials → create an **OAuth
+     2.0 Client ID** (type: Web application). Authorized redirect URI:
+     `https://<your-project-ref>.supabase.co/auth/v1/callback`.
+  2. Supabase → Authentication → Providers → **Google** → paste the Client ID +
+     Secret, enable it.
+  3. Supabase → Authentication → URL Configuration → add your admin URLs to
+     **Redirect URLs** (e.g. `https://rngtcg.com/**`) and set the Site URL.
+  4. Cloudflare Pages env (Production):
+     - `SUPABASE_ANON_KEY` = your project's anon / publishable key
+     - `ADMIN_EMAILS` = the Google account email(s) allowed, comma-separated
      - (`SUPABASE_URL` already set; `ADMIN_TOKEN` kept as break-glass)
-  4. Redeploy. Until then, the old `ADMIN_TOKEN` still works.
+  5. Redeploy. Until then, the old `ADMIN_TOKEN` still works.
 - [ ] **Cloudflare Access** (Step 6b of GO_LIVE.md) — optional hard edge lock in
   front of the admin URLs (defense in depth on top of the app-level auth).
