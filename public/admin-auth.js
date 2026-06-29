@@ -81,11 +81,19 @@
     }
   }
 
+  function hasStoredSession() {
+    try { return Object.keys(localStorage).some(k => /^sb-.*-auth-token$/.test(k)); }
+    catch (_) { return false; }
+  }
+
   async function boot() {
     if (booted) return;
     booted = true;
     gateEl();
-    showLoading();
+    // Only show the "restoring session" spinner when a Supabase session is
+    // actually stored (i.e. a returning, logged-in admin). A logged-out visitor
+    // goes straight to the Google button — no misleading loading flash.
+    if (hasStoredSession()) showLoading(); else showSignin();
     let cfg = {};
     try { cfg = await (await fetch("/api/public-config")).json(); } catch (_) {}
     if (!cfg.supabase_url || !cfg.supabase_anon_key) {
@@ -113,15 +121,14 @@
   async function signInGoogle() {
     if (!client) return;
     const btn = document.getElementById("adminGoogleBtn");
-    if (btn) btn.disabled = true;
-    showLoading();
+    if (btn) { btn.disabled = true; btn.querySelector("span").textContent = "Redirecting…"; }
     try {
       const redirectTo = window.location.origin + window.location.pathname;
       const { error } = await client.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
       if (error) throw error;
       // Browser navigates to Google; control returns via the redirect.
     } catch (e) {
-      if (btn) btn.disabled = false;
+      if (btn) { btn.disabled = false; btn.querySelector("span").textContent = "Continue with Google"; }
       showSignin((e && e.message) || "Couldn't start Google sign-in.");
     }
   }
