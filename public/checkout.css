@@ -27,6 +27,14 @@ body{background:var(--color-bg);background-image:radial-gradient(circle at 1px 1
   .summary-price{font-size:12px;white-space:nowrap}
   .summary-remove{width:24px;height:24px;font-size:17px}
 }
+/* Stop horizontal overflow on phones: let the grid columns shrink, and drop the
+   big "R&G TCG" wordmark in the header (the back link + mark are enough). */
+.checkout-form, .checkout-summary { min-width: 0; }
+@media(max-width:920px){ html, body { overflow-x: hidden; max-width: 100%; } }
+@media(max-width:680px){
+  .checkout-header__inner{ min-width: 0; gap: var(--space-3); }
+  .checkout-header .logo__name{ display: none; }
+}
 
 /* Phase 8 — Google Places address search box (additive; fills manual fields) */
 .addr-search gmp-place-autocomplete { width: 100%; display: block; margin-top: 6px; }
