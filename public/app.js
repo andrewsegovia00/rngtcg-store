@@ -329,9 +329,9 @@ function addToCart(id, format="pack", qty=1, fromEl){
   if (cap <= 0) return;
   const idx = cart.findIndex(l => l.productId===id && l.format===format);
   const current = idx >= 0 ? cart[idx].quantity : 0;
-  // Already holding all available stock — do nothing (no count change, and no
-  // misleading fly-to-chest animation).
-  if (current >= cap) return;
+  // Already holding all available stock — tell the shopper why it won't add more
+  // (avoids the "it just doesn't count up" confusion) and skip the fly animation.
+  if (current >= cap) { showAddToast(`Max stock — only ${cap} available`); return; }
   if (idx>=0) cart[idx].quantity = Math.min(current + qty, cap);
   else cart.push({productId:id, format, quantity:Math.min(Math.max(1, qty), cap)});
   saveCart();
@@ -357,9 +357,9 @@ function pulseBag(){ const b=$("#bag"); b.classList.remove("pulse"); void b.offs
 function bumpHeaderCart(){ const h=$("#headerCart"); if(!h) return; h.classList.remove("bump"); void h.offsetWidth; h.classList.add("bump"); }
 function flashChest(){ const b=$("#bag"); if(!b) return; b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); }
 let _addToastEl;
-function showAddToast(){
+function showAddToast(msg){
   if(!_addToastEl){ _addToastEl = document.createElement("div"); _addToastEl.className = "add-toast"; document.body.appendChild(_addToastEl); }
-  _addToastEl.textContent = "✓ Added to chest";
+  _addToastEl.textContent = msg || "✓ Added to chest";
   _addToastEl.classList.remove("show"); void _addToastEl.offsetWidth; _addToastEl.classList.add("show");
   clearTimeout(_addToastEl._t); _addToastEl._t = setTimeout(() => _addToastEl.classList.remove("show"), 1100);
 }
