@@ -217,13 +217,20 @@ function renderChestVisual(items, pulse){
   // Mimic chest: lid (back) + a fanned row of slabs erupting from the mouth +
   // body (front). Empty = lid drops shut. Up to 5 slabs + a "+N" overflow slab.
   const MAX = 5;
-  const slabs = cart.slice(0, MAX).map(l => {
+  // One slab per ITEM (quantity-expanded), so adding the same product adds cards
+  // and bumps the "+N" overflow rather than just changing a hidden line.
+  const units = [];
+  cart.forEach(l => {
     const p = productById(l.productId);
+    if (!p) return;
     const accent = categoryById(p.category)?.accent || p.tone;
-    return `<div class="slab" style="background:${accent}"><span>${categoryShort(p.category)}</span></div>`;
-  }).join("");
-  const overflow = cart.length > MAX
-    ? `<div class="slab" style="background:var(--color-ink)"><span>+${cart.length - MAX}</span></div>`
+    const code = categoryShort(p.category);
+    for (let k = 0; k < l.quantity; k++) units.push({ accent, code });
+  });
+  const slabs = units.slice(0, MAX)
+    .map(u => `<div class="slab" style="background:${u.accent}"><span>${u.code}</span></div>`).join("");
+  const overflow = units.length > MAX
+    ? `<div class="slab" style="background:var(--color-ink)"><span>+${units.length - MAX}</span></div>`
     : "";
 
   return `
