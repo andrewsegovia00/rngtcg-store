@@ -1,13 +1,14 @@
 /* ============================================================================
    Shared admin auth for every admin page.
-   - Signs in with Google via Supabase OAuth, using the browser-safe anon/
-     publishable key fetched from /api/public-config.
-   - Injects a full-screen login gate; the dashboard stays hidden
-     (body.admin-locked) until a session exists AND the server confirms the
-     account is an authorized admin (email allowlist).
+   - Signs in with Google via Supabase OAuth (browser-safe anon key from
+     /api/public-config).
+   - Injects a full-screen gate. While the session is being restored it shows a
+     neutral "loading" state; the "Continue with Google" button only appears
+     when there is genuinely no session — so normal page-to-page navigation just
+     shows a brief spinner, never a flash of the sign-in form.
    - Exposes window.AdminAuth: requireLogin(loadFn), accessToken(), signOut(), email().
-   The server re-verifies the Supabase token + allowlist on every admin API call
-   (functions/_lib/admin.js), so this is the UI half of a real check.
+   The server re-verifies the Supabase token + email allowlist on every admin
+   API call (functions/_lib/admin.js).
    ============================================================================ */
 (function () {
   let client = null;
@@ -25,10 +26,13 @@
     t.innerHTML = `
       <div class="admin-gate" id="adminGate">
         <div class="admin-gate__card">
-          <div class="admin-gate__brand"><span class="admin-gate__mark">R&G</span><strong>Admin sign in</strong></div>
-          <button type="button" id="adminGoogleBtn" class="admin-gate__google">${GOOGLE_SVG}<span>Continue with Google</span></button>
-          <p class="admin-gate__err" id="adminGateErr" hidden></p>
-          <p class="admin-gate__note">Authorized Google accounts only.</p>
+          <div class="admin-gate__brand"><span class="admin-gate__mark">R&G</span><strong>Admin</strong></div>
+          <div class="admin-gate__loading" id="adminGateLoading"><span class="admin-gate__spinner"></span> Restoring your session…</div>
+          <div class="admin-gate__signin" id="adminGateSignin" hidden>
+            <button type="button" id="adminGoogleBtn" class="admin-gate__google">${GOOGLE_SVG}<span>Continue with Google</span></button>
+            <p class="admin-gate__err" id="adminGateErr" hidden></p>
+            <p class="admin-gate__note">Authorized Google accounts only.</p>
+          </div>
         </div>
       </div>`.trim();
     g = t.content.firstChild;
@@ -38,28 +42,38 @@
     return g;
   }
 
-  function err(msg) {
+  function showLoading() {
+    document.body.classList.add("admin-locked");
+    const l = document.getElementById("adminGateLoading");
+    const s = document.getElementById("adminGateSignin");
+    if (l) l.hidden = false;
+    if (s) s.hidden = true;
+  }
+  function showSignin(msg) {
+    document.body.classList.add("admin-locked");
+    const l = document.getElementById("adminGateLoading");
+    const s = document.getElementById("adminGateSignin");
     const e = document.getElementById("adminGateErr");
+    if (l) l.hidden = true;
+    if (s) s.hidden = false;
     if (e) { e.hidden = !msg; e.textContent = msg || ""; }
   }
-  function lock(msg) { document.body.classList.add("admin-locked"); err(msg || ""); }
   function unlock() {
     document.body.classList.remove("admin-locked");
-    err("");
+    const e = document.getElementById("adminGateErr"); if (e) e.hidden = true;
     if (typeof onUnlock === "function") onUnlock();
   }
 
-  // A session only unlocks the UI if the server agrees the account is an admin —
-  // so a signed-in but non-allowlisted Google user never sees the dashboard.
+  // A session only unlocks the UI if the server agrees the account is an admin.
   async function gateCheck() {
     if (checking) return;
-    if (!session) { lock(); return; }
+    if (!session) { showSignin(); return; }
     checking = true;
     try {
       const res = await fetch("/api/admin-overview", { headers: { authorization: `Bearer ${session.access_token}` } });
       if (res.ok) { unlock(); return; }
-      if (res.status === 403) { await window.AdminAuth.signOut(); lock("That Google account isn't on the admin allowlist."); return; }
-      await window.AdminAuth.signOut(); lock("Sign-in could not be verified.");
+      if (res.status === 403) { await doSignOut(); showSignin("That Google account isn't on the admin allowlist."); return; }
+      await doSignOut(); showSignin("Sign-in could not be verified.");
     } catch (_) {
       unlock(); // transient network issue — let the page load and surface errors itself
     } finally {
@@ -71,10 +85,11 @@
     if (booted) return;
     booted = true;
     gateEl();
+    showLoading();
     let cfg = {};
     try { cfg = await (await fetch("/api/public-config")).json(); } catch (_) {}
     if (!cfg.supabase_url || !cfg.supabase_anon_key) {
-      lock("Admin login isn't configured yet (missing Supabase keys).");
+      showSignin("Admin login isn't configured yet (missing Supabase keys).");
       return;
     }
     try {
@@ -83,34 +98,37 @@
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
       });
     } catch (_) {
-      lock("Couldn't load the sign-in library. Check your connection and retry.");
+      showSignin("Couldn't load the sign-in library. Check your connection and retry.");
       return;
     }
-    // Catches the session created after the Google redirect lands back here.
     client.auth.onAuthStateChange((_e, s) => {
       session = s;
       if (s && document.body.classList.contains("admin-locked")) gateCheck();
     });
     const { data } = await client.auth.getSession();
     session = data.session || null;
-    if (session) gateCheck(); else lock();
+    if (session) gateCheck(); else showSignin();
   }
 
   async function signInGoogle() {
     if (!client) return;
-    err("");
     const btn = document.getElementById("adminGoogleBtn");
     if (btn) btn.disabled = true;
+    showLoading();
     try {
-      // Strip any leftover OAuth hash so redirectTo is a clean URL.
       const redirectTo = window.location.origin + window.location.pathname;
       const { error } = await client.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
       if (error) throw error;
       // Browser navigates to Google; control returns via the redirect.
     } catch (e) {
       if (btn) btn.disabled = false;
-      lock((e && e.message) || "Couldn't start Google sign-in.");
+      showSignin((e && e.message) || "Couldn't start Google sign-in.");
     }
+  }
+
+  async function doSignOut() {
+    try { if (client) await client.auth.signOut(); } catch (_) {}
+    session = null;
   }
 
   window.AdminAuth = {
@@ -118,13 +136,10 @@
       onUnlock = loadFn;
       if (!booted) boot();
       else if (session) gateCheck();
+      else showSignin();
     },
     accessToken() { return (session && session.access_token) || ""; },
     email() { return (session && session.user && session.user.email) || ""; },
-    async signOut() {
-      try { if (client) await client.auth.signOut(); } catch (_) {}
-      session = null;
-      lock();
-    }
+    async signOut() { await doSignOut(); showSignin(); }
   };
 })();
