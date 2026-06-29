@@ -44,8 +44,14 @@ Living backlog for post-launch work. Newest priorities up top.
   element if desired.
 
 ## Backlog
-- [ ] **Limit / cap Google Maps API usage** — referrer-lock the key + hard
-  per-day quota caps in Google Cloud Console (Step 7 of GO_LIVE.md).
+- [~] **Limit / cap Google Maps API usage**
+  - [x] Code: defer the Maps/Places load until the shopper focuses a shipping
+    field, so checkout bounces don't trigger any Places billing. Already uses
+    `PlaceAutocompleteElement` (session-billed) + US-only + minimal fields.
+    Setting `GOOGLE_MAPS_API_KEY` empty disables it entirely (manual entry).
+  - [ ] Dashboard (Google Cloud Console) — owner action, the real hard cap:
+    referrer-restrict the key, restrict to Maps JS + Places APIs, set per-day
+    quota caps, and add a Billing budget + alert (Step 7 of GO_LIVE.md).
 - [ ] **USPS-only shipping + require tracking number** — restrict shipping
   options to USPS and require a tracking number before an order can be marked
   fulfilled/shipped. (`shipping.js`, admin fulfillment flow.)
