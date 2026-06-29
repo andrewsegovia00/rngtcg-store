@@ -251,15 +251,18 @@ button,input,select{font:inherit}
 .mimic__lid{top:18px;z-index:1;transition:transform .55s var(--ease-bounce)}
 .mimic__bottom{top:60px;z-index:3}
 .slabrow{position:absolute;top:36px;left:0;right:0;z-index:2;display:flex;align-items:flex-start;justify-content:center}
-.mimic .slab{width:52px;height:78px;border:var(--outline);border-radius:8px;box-shadow:var(--shadow-offset-sm);margin:0 -9px;display:flex;align-items:flex-start;justify-content:center;padding-top:9px;transform-origin:bottom center;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.5px;color:#fff;background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.12) 0 3px,transparent 3px 7px);animation:slab-in .42s var(--ease-bounce) backwards}
+.mimic .slab{width:52px;height:78px;border:var(--outline);border-radius:8px;box-shadow:var(--shadow-offset-sm);margin:0 -7px;display:flex;align-items:flex-start;justify-content:center;padding-top:9px;transform-origin:bottom center;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.5px;color:#fff;background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.12) 0 3px,transparent 3px 7px);animation:slab-in .42s var(--ease-bounce) backwards}
 .mimic .slab span{background:rgba(26,19,32,.45);border:1px solid rgba(255,255,255,.4);border-radius:4px;padding:1px 6px}
-.mimic .slab:nth-child(1){transform:rotate(-11deg) translateY(4px)}
-.mimic .slab:nth-child(2){transform:rotate(-4deg) translateY(-8px);z-index:2}
-.mimic .slab:nth-child(3){transform:rotate(3deg) translateY(-12px);z-index:3}
-.mimic .slab:nth-child(4){transform:rotate(9deg) translateY(-6px);z-index:2}
-.mimic .slab:nth-child(5){transform:rotate(14deg) translateY(4px)}
-.mimic .slab:nth-child(6){transform:rotate(18deg) translateY(8px);background-image:none}
+.mimic .slab:nth-child(1){transform:rotate(-9deg) translateY(2px)}
+.mimic .slab:nth-child(2){transform:rotate(-5deg) translateY(0);z-index:2}
+.mimic .slab:nth-child(3){transform:rotate(0deg) translateY(-1px);z-index:3}
+.mimic .slab:nth-child(4){transform:rotate(5deg) translateY(0);z-index:2}
+.mimic .slab:nth-child(5){transform:rotate(9deg) translateY(2px)}
+.mimic .slab:nth-child(6){transform:rotate(13deg) translateY(4px);background-image:none}
 .mimic.is-empty .mimic__lid{transform:translateY(77px)}
 .mimic.pulse{animation:chestpulse .4s var(--ease-bounce)}
 @keyframes chestpulse{0%{transform:scale(1)}42%{transform:scale(1.035)}100%{transform:scale(1)}}
 @media (prefers-reduced-motion: reduce){.mimic .slab,.mimic.pulse{animation:none}.mimic__lid{transition:none}}
+/* Shrink the chest on phones so it doesn't dominate the cart drawer */
+@media (max-width: 760px){ .mimic-fit{ max-width: 224px; } }
+@media (max-width: 380px){ .mimic-fit{ max-width: 196px; } }
