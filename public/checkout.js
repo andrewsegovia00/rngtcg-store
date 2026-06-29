@@ -283,6 +283,14 @@ async function loadAddressAutocomplete(){
     document.head.appendChild(s);
   } catch (_) { /* manual entry still works */ }
 }
-loadAddressAutocomplete();
+// Defer Google Maps until the shopper actually interacts with the shipping
+// address — visitors who never fill it in don't trigger a Maps/Places load.
+(function deferAddressAutocomplete(){
+  let started = false;
+  const start = () => { if (started) return; started = true; loadAddressAutocomplete(); };
+  ["#shipName","#shipLine1","#shipCity","#shipState","#shipZip","#shipPhone"].forEach(sel => {
+    const el = $(sel); if (el) el.addEventListener("focus", start, { once: true });
+  });
+})();
 
 renderSummary();
