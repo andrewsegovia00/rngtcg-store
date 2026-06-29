@@ -6,6 +6,8 @@ let activeCat = "all";
 let activeLanguage = "all";
 let activeFilter = "all";
 let search = "";
+const CART_KEY = "rg_tcg_cart";
+const CART_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours — a stale cart clears itself
 let cart = loadCart(); // [{productId, format:"pack"|"box", quantity}]
 const cardFormat = {};
 let inventoryOverlay = {}; // productId -> { pack: available, box: available }
@@ -28,9 +30,6 @@ const artFor = (p, fmt) => (fmt === "box" ? (p.image || p.imagePack) : (p.imageP
 // as available only when it has a price; default to whichever format exists.
 const hasFormat = (p, fmt) => (fmt === "box" ? p.boxPrice : p.packPrice) != null;
 const defaultFormat = p => (hasFormat(p, "pack") ? "pack" : "box");
-
-const CART_KEY = "rg_tcg_cart";
-const CART_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours — a stale cart clears itself
 
 function loadCart(){
   try {
